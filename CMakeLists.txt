@@ -11,11 +11,12 @@ link_directories(${MKLROOT}/lib/intel64)
 add_executable (fusionchecks "fusion checks.cpp")
 
 target_include_directories(fusionchecks PRIVATE 
-                           ${MKLROOT}/include)
+                           ${MKLROOT}/include
+                           ${EIGENROOT})
 
 target_link_libraries(fusionchecks
-						mkl_core.lib
-						mkl_sequential.lib
-						mkl_intel_ilp64.lib)
+                        mkl_core.lib
+                        mkl_sequential.lib
+                        mkl_intel_ilp64.lib)
 
 # TODO: Add tests and install targets if needed.
