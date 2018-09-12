@@ -8,11 +8,11 @@
 
 namespace vectorized {
 
-    float sum(__m256& ps) {
-        ps = _mm256_hadd_ps(ps, ps);
-        ps = _mm256_hadd_ps(ps, ps);
-        ps = _mm256_hadd_ps(ps, ps);
-        return _mm256_cvtss_f32(ps);
+    float sum(__m128& ps) {
+        ps = _mm_hadd_ps(ps, ps);
+        ps = _mm_hadd_ps(ps, ps);
+        ps = _mm_hadd_ps(ps, ps);
+        return _mm_cvtss_f32(ps);
     }
 
     struct BaselineSum {
@@ -26,14 +26,14 @@ namespace vectorized {
         scl_t eval() {
             const int n = (int)A.size();
             const scl_t* p = A.data();
-            __m256 mmSum = _mm256_setzero_ps();
+            __m128 mmSum = _mm_setzero_ps();
             int i = 0;
             for (; i + 7 < n; i += 8)
-                mmSum = _mm256_add_ps(mmSum, _mm256_loadu_ps(p + i));
+                mmSum = _mm_add_ps(mmSum, _mm_loadu_ps(p + i));
             int mask[8]{};
             for (int j = n % 8; j < 8; ++j)
                 mask[j] = -1;
-            mmSum = _mm256_add_ps(mmSum, _mm256_maskload_ps(p + i, _mm256_loadu_si256((__m256i*)mask)));
+            mmSum = _mm_add_ps(mmSum, _mm_maskload_ps(p + i, _mm_loadu_si128((__m128i*)mask)));
             return sum(mmSum);
         }
         bool check(float x) { return x == ans; }
@@ -50,18 +50,18 @@ namespace vectorized {
         }
         std::vector<scl_t> eval() {
             std::vector<scl_t> B(A.size());
-            __m256 C = _mm256_broadcast_ss(&c);
+            __m128 C = _mm_broadcast_ss(&c);
             const int n = (int)A.size();
             const scl_t* p = A.data();
             scl_t* q = B.data();
             int i = 0;
             for (; i + 7 < n; i += 8)
-                _mm256_storeu_ps(q + i, _mm256_mul_ps(C, _mm256_loadu_ps(p + i)));
+                _mm_storeu_ps(q + i, _mm_mul_ps(C, _mm_loadu_ps(p + i)));
             int mask_data[8]{};
             for (int j = n % 8; j < 8; ++j)
                 mask_data[j] = -1;
-            __m256i mask = _mm256_loadu_si256((__m256i*)mask_data);
-            _mm256_maskstore_ps(q + i, mask, _mm256_mul_ps(C, _mm256_maskload_ps(p + i, mask)));
+            __m128i mask = _mm_loadu_si128((__m128i*)mask_data);
+            _mm_maskstore_ps(q + i, mask, _mm_mul_ps(C, _mm_maskload_ps(p + i, mask)));
             return B;
         }
         bool check(std::vector<scl_t> x) { return x == ans; }
