@@ -52,3 +52,5 @@ Histogram make_histogram(TestResult const& result, int bin_cnt);
 std::ostream& operator<<(std::ostream& out, Histogram const& hist);
 
 scl_t random_scalar();
+
+std::vector<scl_t> random_vector(int size);

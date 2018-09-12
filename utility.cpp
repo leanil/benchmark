@@ -9,14 +9,6 @@ void clear_cache() {
         tmp[i] *= 2;
 }
 
-auto random_vector(int size) {
-    vector<scl_t> vec(size);
-    static default_random_engine gen;
-    uniform_real_distribution<scl_t> dist;
-    generate(vec.begin(), vec.end(), [&]() {return dist(gen); });
-    return vec;
-}
-
 Histogram make_histogram(TestResult const& result, int from, int to, int bin_cnt)
 {
     Histogram hist{ from, to, bin_cnt, (double)(to - from) / bin_cnt, vector<int>(bin_cnt,0) };
@@ -42,4 +34,12 @@ scl_t random_scalar() {
     static default_random_engine gen;
     uniform_real_distribution<scl_t> dist;
     return dist(gen);
+}
+
+vector<scl_t> random_vector(int size) {
+    vector<scl_t> vec(size);
+    static default_random_engine gen;
+    uniform_real_distribution<scl_t> dist;
+    generate(vec.begin(), vec.end(), [&]() {return dist(gen); });
+    return vec;
 }

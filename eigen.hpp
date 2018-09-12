@@ -1,5 +1,6 @@
 #pragma once
 #define EIGEN_DONT_PARALLELIZE
+//#define EIGEN_DONT_VECTORIZE
 #include "utility.h"
 #include "Eigen/Dense"
 #include <algorithm>
@@ -7,6 +8,7 @@
 #include <string>
 
 using VectorX = Eigen::Matrix<scl_t, Eigen::Dynamic, 1>;
+using View = Eigen::Map<Eigen::Matrix<scl_t, Eigen::Dynamic, 1>, Eigen::Aligned32>;
 
 struct BaselineSum {
     std::string id = "a = sum_i A_i";

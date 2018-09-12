@@ -18,6 +18,9 @@ target_include_directories(fusionchecks PRIVATE
 #                           ${MKLROOT}/include
                            ${EIGENROOT})
 
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:AVX")
+message(${CMAKE_CXX_FLAGS})
+
 #target_link_libraries(fusionchecks
 #                        mkl_core.lib
 #                        mkl_sequential.lib
