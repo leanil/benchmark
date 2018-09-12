@@ -10,9 +10,11 @@ link_directories(${MKLROOT}/lib/intel64)
 # Add source to this project's executable.
 add_executable (fusionchecks
                     "fusion checks.cpp"
-                    "eigen.hpp"
                     "utility.h"
-                    "utility.cpp")
+                    "utility.cpp"
+                    "eigen.hpp"
+                    "naive.hpp"
+                    "vectorized.hpp")
 
 target_include_directories(fusionchecks PRIVATE 
 #                           ${MKLROOT}/include

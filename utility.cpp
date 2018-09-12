@@ -13,8 +13,10 @@ Histogram make_histogram(TestResult const& result, int from, int to, int bin_cnt
 {
     Histogram hist{ from, to, bin_cnt, (double)(to - from) / bin_cnt, vector<int>(bin_cnt,0) };
     for (int x : result.times)
-        if (x >= from && x <= to)
+        if (x >= from && x < to)
             ++hist.freq[int((x - from) / hist.bin_size)];
+        else if (x == to)
+            ++hist.freq.back();
     return hist;
 }
 
