@@ -2,7 +2,7 @@
 #define EIGEN_DONT_PARALLELIZE
 //#define EIGEN_DONT_VECTORIZE
 #include "utility.h"
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 #include <algorithm>
 #include <array>
 #include <string>
@@ -54,7 +54,7 @@ struct Dot1 {
     scl_t ans;
     auto eval() { return A[0].cwiseProduct(A[1]).cwiseProduct(A[2]).sum(); }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }
@@ -66,7 +66,7 @@ struct Dot2 {
     scl_t ans;
     auto eval() { return (A[0] + A[1]).dot(A[2]); }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }
@@ -78,7 +78,7 @@ struct Dot3 {
     scl_t ans;
     auto eval() { return (A[0] + A[1]).dot(A[2] - A[3]); }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }
@@ -91,8 +91,8 @@ struct Dot4 {
     scl_t ans;
     auto eval() { return (a[0] * A[0] + a[1] * A[1]).dot(a[2] * A[2] + a[3] * A[3]); }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
-        generate(a.begin(), a.end(), [&]() {return random_scalar(); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(a.begin(), a.end(), [&]() {return random_scalar(); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }
@@ -104,7 +104,7 @@ struct Dot5 {
     scl_t ans;
     auto eval() { return (A[0] + A[1]).dot(A[0] - A[2]); }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }
@@ -119,7 +119,7 @@ struct Dot6 {
         return t1.dot(t2);
     }
     void init(int size) {
-        generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
+        std::generate(A.begin(), A.end(), [&]() {return VectorX::Random(size); });
         ans = eval();
     }
     bool check(float x) { return x == ans; }

@@ -38,6 +38,5 @@ int main()
     }*/
     /*cout << make_histogram(tester(Dot3(), 1 << 16, 1000), 10)
         << make_histogram(tester(Dot6(), 1 << 16, 1000), 10);*/
-    system("PAUSE");
     return 0;
 }

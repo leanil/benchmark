@@ -71,7 +71,7 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
@@ -88,7 +88,7 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
@@ -105,7 +105,7 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
@@ -123,8 +123,8 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
-            generate(a.begin(), a.end(), [&]() {return random_scalar(); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(a.begin(), a.end(), [&]() {return random_scalar(); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
@@ -141,7 +141,7 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
@@ -163,7 +163,7 @@ namespace naive {
             return sum;
         }
         void init(int size) {
-            generate(A.begin(), A.end(), [&]() {return random_vector(size); });
+            std::generate(A.begin(), A.end(), [&]() {return random_vector(size); });
             ans = eval();
         }
         bool check(float x) { return x == ans; }
