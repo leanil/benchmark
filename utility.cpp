@@ -1,5 +1,7 @@
 #include "utility.h"
-#include <random>
+#include <cstdlib>
+#include <memory>
+
 
 using namespace std;
 
@@ -37,6 +39,20 @@ scl_t random_scalar() {
     uniform_real_distribution<scl_t> dist;
     return dist(gen);
 }
+
+default_random_engine AlignedData::gen;
+
+AlignedData::AlignedData(size_t size, size_t alignment) {
+    size_t space = size*sizeof(scl_t) + alignment - 1;
+    void* ptr = orig = malloc(space);
+    data = (scl_t*)align(alignment, size, ptr, space);
+    uniform_real_distribution<scl_t> dist;
+    generate(data, data+size, [&]() {return dist(gen); });
+}
+
+//AlignedData::~AlignedData() {
+//    free(orig);
+//}
 
 vector<scl_t> random_vector(int size) {
     vector<scl_t> vec(size);

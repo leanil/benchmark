@@ -3,13 +3,13 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("fusion checks")
+project ("benchmark")
 
 link_directories(${MKLROOT}/lib/intel64)
 
 # Add source to this project's executable.
 add_executable (fusionchecks
-                    "fusion checks.cpp"
+                    "fusion_checks.cpp"
                     "utility.h"
                     "utility.cpp"
                     "eigen.hpp"
@@ -21,7 +21,7 @@ target_include_directories(fusionchecks PRIVATE
                            ${EIGENROOT})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -msse2")
+    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -msse4.2")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:SSE2")
 endif()

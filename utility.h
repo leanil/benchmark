@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <vector>
 
 using scl_t = float;
@@ -17,11 +18,15 @@ struct TestResult {
     bool fail = false;
 };
 
+template<typename Benchmark>
+TestResult test_helper(int size, std::vector<scl_t*> const& data, int test_cnt) {
+    return tester(Benchmark(size, data), test_cnt);
+}
+
 template<typename Expression>
-TestResult tester(Expression expr, int size, int test_cnt) {
+TestResult tester(Expression expr, int test_cnt) {
     TestResult result;
     result.times.reserve(test_cnt);
-    expr.init(size);
     for (int t = 0; t < test_cnt; ++t) {
         clear_cache();
         auto from = std::chrono::high_resolution_clock::now();
@@ -52,5 +57,15 @@ Histogram make_histogram(TestResult const& result, int bin_cnt);
 std::ostream& operator<<(std::ostream& out, Histogram const& hist);
 
 scl_t random_scalar();
+
+class AlignedData {
+public:
+    AlignedData(size_t size, size_t alignment);
+    //~AlignedData();
+    scl_t* data;
+private:
+    void* orig;
+    static std::default_random_engine gen;
+};
 
 std::vector<scl_t> random_vector(int size);
