@@ -18,11 +18,6 @@ struct TestResult {
     bool fail = false;
 };
 
-template<typename Benchmark>
-TestResult test_helper(int size, std::vector<scl_t*> const& data, int test_cnt) {
-    return tester(Benchmark(size, data), test_cnt);
-}
-
 template<typename Expression>
 TestResult tester(Expression expr, int test_cnt) {
     TestResult result;
@@ -42,6 +37,11 @@ TestResult tester(Expression expr, int test_cnt) {
     result.max_time = *std::max_element(result.times.begin(), result.times.end());
     result.avg_time = (double)std::accumulate(result.times.begin(), result.times.end(), 0) / test_cnt;
     return result;
+}
+
+template<typename Benchmark>
+TestResult test_helper(int size, std::vector<scl_t*> const& data, int test_cnt) {
+    return tester(Benchmark(size, data), test_cnt);
 }
 
 struct Histogram {

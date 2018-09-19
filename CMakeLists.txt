@@ -14,7 +14,10 @@ add_executable (fusionchecks
                     "utility.cpp"
                     "eigen.hpp"
                     "naive.hpp"
-                    "vectorized.hpp")
+                    "vectorized.hpp"
+                    "futhark.hpp"
+                    "futhark_lib.h"
+                    "futhark_lib.cpp")
 
 target_include_directories(fusionchecks PRIVATE 
 #                           ${MKLROOT}/include
