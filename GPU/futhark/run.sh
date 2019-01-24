@@ -1,8 +1,8 @@
 futhark-opencl baseline.fut
 echo sum
-futhark-dataset -b -g [100000000]f32 | ./baseline --entry-point sum -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [10000000]f32 | ./baseline --entry-point sum -t /dev/stderr -r 10 > /dev/null
 echo prod
-futhark-dataset -b -g f32 -g [100000000]f32 | ./baseline --entry-point prod -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g f32 -g [10000000]f32 | ./baseline --entry-point prod -t /dev/stderr -r 10 > /dev/null
 
 futhark-opencl 1d.fut
 echo dot

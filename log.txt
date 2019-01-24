@@ -1,0 +1,7 @@
+Is it possible to export the imported symbols (entry points) in futhark?
+
+The GPU runs out of memory if I create (and free) a new context for each test.
+(null): /home/leitereg/benchmark/GPU/futhark/futhark_test.c:2374: OpenCL call
+  opencl_alloc(&ctx->opencl, size, desc, &block->mem)
+failed with error code -4 (Memory object allocation failure)
+

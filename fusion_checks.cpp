@@ -43,9 +43,9 @@ void time_matrix(int test_cnt) {
             cout << '(';
             for (int mode = 0; mode < mode_cnt; ++mode)
                 cout << (mode ? "," : "") << testers[mode][task](1 << size, ptrs[size], test_cnt).min_time;
-            cout << ") ";
+            (cout << ") ").flush();
         }
-        cout << '\n';
+        cout << endl;
     }
 }
 
@@ -59,7 +59,8 @@ int main()
     }
     //check_correctness();
     //cout << endl;
-    time_matrix(200);
+    time_matrix(100);
+    force_cache_clear();
 
     //cout << tester(eigen::BaselineSum(1 << 18, ptrs[18]), 500).min_time << endl
     //    << tester(naive::BaselineSum(1 << 18, ptrs[18]), 500).min_time << endl

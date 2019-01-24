@@ -5,10 +5,20 @@
 
 using namespace std;
 
+const int cache_size = 1 << 23;
+int* const tmp = new int[cache_size];
+
 void clear_cache() {
-    static volatile int tmp[1 << 24]; //larger than the cache
-    for (int i = 0; i < 1 << 24; ++i)
-        tmp[i] *= 2;
+    for (int i = 0; i < cache_size; ++i)
+        ++tmp[i];
+}
+
+void force_cache_clear() {
+    unsigned int sum = 0;
+    for (int i = 0; i < cache_size; ++i)
+        sum += tmp[i];
+    delete[] tmp;
+    cout << sum << endl;
 }
 
 Histogram make_histogram(TestResult const& result, int from, int to, int bin_cnt)

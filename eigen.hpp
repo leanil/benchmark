@@ -2,6 +2,7 @@
 #define EIGEN_DONT_PARALLELIZE
 //#define EIGEN_DONT_VECTORIZE
 #include "utility.h"
+#include <cassert>
 #include <Eigen/Dense>
 #include <algorithm>
 #include <array>

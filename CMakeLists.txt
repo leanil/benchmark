@@ -1,13 +1,11 @@
-﻿# CMakeList.txt : CMake project for fusion checks, include source and define
-# project specific logic here.
-#
 cmake_minimum_required (VERSION 3.8)
 
 project ("benchmark")
 
-link_directories(${MKLROOT}/lib/intel64)
+set(CMAKE_CXX_STANDARD 14)
 
-# Add source to this project's executable.
+#link_directories(${MKLROOT}/lib/intel64)
+
 add_executable (fusionchecks
                     "fusion_checks.cpp"
                     "utility.h"
@@ -21,12 +19,12 @@ add_executable (fusionchecks
 
 target_include_directories(fusionchecks PRIVATE 
 #                           ${MKLROOT}/include
-                           ${EIGENROOT})
+                           ${EIGEN_ROOT})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -msse4.2")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    # SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:SSE2")
+     SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /arch:SSE2")
 endif()
 
 #target_link_libraries(fusionchecks
@@ -34,4 +32,5 @@ endif()
 #                        mkl_sequential.lib
 #                        mkl_intel_ilp64.lib)
 
-# TODO: Add tests and install targets if needed.
+add_subdirectory(GPU)
+
