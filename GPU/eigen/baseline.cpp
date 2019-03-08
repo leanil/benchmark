@@ -10,6 +10,10 @@ namespace eigen {
         return baseline_sum<i_1d>(A_host, a_host);
     }
 
+    long long baseline_inc(scl_t* A_host, scl_t* B_host) {
+        return baseline_inc<i_1d>(A_host, B_host);
+    }
+
     long long baseline_prod(scl_t* A_host, scl_t* c, scl_t* B_host) {
         return baseline_prod<i_1d>(A_host, c, B_host);
     }

@@ -2,7 +2,7 @@ entry dot [n] (A: [n]f32) (B: [n]f32): f32 =
     reduce (+) 0 (map2 (*) A B)
 
 entry dot1 [n] (A: [n]f32) (B: [n]f32) (C: [n]f32): f32 =
-    reduce (+) 0 (map3 (\a b c -> a*b*c) A B C)
+    reduce (+) 0 (map2 (*) (map2 (*) A B) C)
 
 entry dot2 [n] (A: [n]f32) (B: [n]f32) (C: [n]f32): f32 =
     reduce (+) 0 (map2 (*) (map2 (+) A B) C)

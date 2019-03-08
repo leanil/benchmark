@@ -9,10 +9,15 @@ szmax = 28
 for i in range(szmin,szmax+1):
     sz = 2 ** (i-1)
     data = np.random.rand(sz)
-    t0 = time.perf_counter()
-    with tf.Session() as sess:
-        sess.run(tf.add(data,1))
-    t1 = time.perf_counter()
-    sec = t1-t0
+    task = tf.add(data,1)
+    config = tf.ConfigProto(device_count={'GPU': 1})
+    sec = 9999
+    with tf.Session(config=config) as sess:
+        for _ in range(10):
+            t0 = time.perf_counter()
+            sess.run(task)
+            t1 = time.perf_counter()
+            sec = min(sec,t1-t0)
     GB = (sz*data.itemsize) / 1024 / 1024 / 1024
     print(sz*data.itemsize//1024, "  dt =", sec, " ", GB/sec, "GB/s")
+    tf.reset_default_graph()

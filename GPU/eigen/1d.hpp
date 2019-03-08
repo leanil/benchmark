@@ -12,7 +12,9 @@ namespace eigen {
         auto B = init<i>(B_host);
         auto a = init<>(a_host, false);
         auto start = chrono::high_resolution_clock::now();
+        //TODO: contract
         a().device(sycl_device) = (A()*B()).sum();
+        //a().device(sycl_device) = A().contract(B(), Dimensions<1>{ { {1, 0} }});
         auto done = chrono::high_resolution_clock::now();
         sycl_device.memcpyDeviceToHost(a_host, a.gpu_data, 1 * sizeof(scl_t));
         sycl_device.synchronize();
@@ -40,7 +42,8 @@ namespace eigen {
         auto C = init<i>(C_host);
         auto a = init<>(a_host, false);
         auto start = chrono::high_resolution_clock::now();
-        a().device(sycl_device) = ((A() + B())*C()).sum();
+        //a().device(sycl_device) = ((A() + B())*C()).sum();
+        a().device(sycl_device) = (A() + B()).contract(C(), Dimensions<1>{ { {1, 0} }});
         auto done = chrono::high_resolution_clock::now();
         sycl_device.memcpyDeviceToHost(a_host, a.gpu_data, 1 * sizeof(scl_t));
         sycl_device.synchronize();
@@ -54,7 +57,8 @@ namespace eigen {
         auto C = init<i>(C_host);
         auto a = init<>(a_host, false);
         auto start = chrono::high_resolution_clock::now();
-        a().device(sycl_device) = ((A() + B())*(A() - C())).sum();
+        //a().device(sycl_device) = ((A() + B())*(A() - C())).sum();
+        //a().device(sycl_device) = (A() + B()).contract(A() - C(), Dimensions<1>{ { {1, 0} }});
         auto done = chrono::high_resolution_clock::now();
         sycl_device.memcpyDeviceToHost(a_host, a.gpu_data, 1 * sizeof(scl_t));
         sycl_device.synchronize();

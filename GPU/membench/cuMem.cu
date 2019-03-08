@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -8,16 +9,20 @@
 
 auto to_seconds(cl_ulong t1, cl_ulong t2){ return (std::max(t1, t2) - std::min(t1, t2)) / 1000.0 /1000.0 /1000.0; }
 
-int main()
+int main(int argc, char** argv)
 {
 	using T = float;
-	const size_t szmin = ((size_t)1) << 2;
-    const size_t szmax = ((size_t)1) << 28;
+	size_t szmin = ((size_t)1) << 2;
+    size_t szmax = ((size_t)1) << 28;
     
+    if (argc > 1)
+        szmin = szmax = atoi(argv[1]);
+
     int ndev = 0;
     cudaGetDeviceCount(&ndev);
 
-    for(int k=0; k<ndev; ++k)
+    //for(int k=0; k<ndev; ++k)
+    int k = 0;
     {
         cudaSetDevice(k);
 

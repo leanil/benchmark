@@ -78,10 +78,10 @@
             "name": "MEMCPYDtoH",
             "pid": 1,
             "tid": 0,
-            "ts": 1549616251218462,
+            "ts": 1549616911482931,
             "dur": 2,
             "args": {
-                "name": "edge_16_Sum",
+                "name": "edge_22_Tensordot",
                 "op": "MEMCPYDtoH"
             }
         },
@@ -91,10 +91,10 @@
             "name": "MEMCPYDtoH",
             "pid": 3,
             "tid": 0,
-            "ts": 1549616251218462,
+            "ts": 1549616911482931,
             "dur": 2,
             "args": {
-                "name": "edge_16_Sum",
+                "name": "edge_22_Tensordot",
                 "op": "MEMCPYDtoH"
             }
         },
@@ -104,8 +104,8 @@
             "name": "NoOp",
             "pid": 5,
             "tid": 0,
-            "ts": 1549616251215471,
-            "dur": 18,
+            "ts": 1549616911480535,
+            "dur": 13,
             "args": {
                 "name": "_SOURCE",
                 "op": "NoOp"
@@ -117,12 +117,12 @@
             "name": "_Retval",
             "pid": 5,
             "tid": 0,
-            "ts": 1549616251218877,
-            "dur": 8,
+            "ts": 1549616911483145,
+            "dur": 4,
             "args": {
-                "name": "_retval_Sum_0_0",
+                "name": "_retval_Tensordot_0_0",
                 "op": "_Retval",
-                "input0": "Sum/_1"
+                "input0": "Tensordot/_1"
             }
         },
         {
@@ -131,8 +131,8 @@
             "name": "NoOp",
             "pid": 7,
             "tid": 0,
-            "ts": 1549616251215471,
-            "dur": 2843,
+            "ts": 1549616911480535,
+            "dur": 2282,
             "args": {
                 "name": "_SOURCE",
                 "op": "NoOp"
@@ -144,10 +144,10 @@
             "name": "Const",
             "pid": 7,
             "tid": 0,
-            "ts": 1549616251218321,
-            "dur": 27,
+            "ts": 1549616911482821,
+            "dur": 19,
             "args": {
-                "name": "Sum/_0__cf__0",
+                "name": "Tensordot/_0__cf__0",
                 "op": "Const"
             }
         }

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -8,11 +9,14 @@
 
 auto to_seconds(cl_ulong t1, cl_ulong t2){ return (std::max(t1, t2) - std::min(t1, t2)) / 1000.0 /1000.0 /1000.0; }
 
-int main()
+int main(int argc, char** argv)
 {
 	using T = float;
-	const size_t szmin = ((size_t)1) << 2;
-	const size_t szmax = ((size_t)1) << 28;
+	size_t szmin = ((size_t)1) << 2;
+	size_t szmax = ((size_t)1) << 28;
+
+    if (argc > 1)
+        szmin = szmax = atoi(argv[1]);
 
 	cl_int status;
 	std::vector<cl_platform_id> plats;
@@ -23,7 +27,8 @@ int main()
 		clGetPlatformIDs(n, plats.data(), 0);
 	}
 
-	for(auto p : plats)
+	//for(auto p : plats)
+    auto p = plats.front();
 	{
 		std::string pname; 
 		{
@@ -39,7 +44,8 @@ int main()
 		std::vector<cl_device_id> devs(nd);
 		clGetDeviceIDs(p, CL_DEVICE_TYPE_GPU, nd, devs.data(), 0);
 
-		for(auto d : devs)
+		//for(auto d : devs)
+        auto d = devs.front();
 		{
 			std::string dname; 
 			{

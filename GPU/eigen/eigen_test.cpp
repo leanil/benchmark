@@ -5,13 +5,15 @@ using namespace eigen;
 using namespace std;
 
 int main() {
-    cout << "asd" << endl;
     cout << "warmup: " << baseline_sum() << "\n\n";
 
-    /*cout << "Baseline:\n";
+    cout << "Baseline:\n";
     cout << "sum\n";
     for (int i = 0; i < 10; ++i)
         cout << baseline_sum() << endl;
+    cout << "inc\n";
+    for (int i = 0; i < 10; ++i)
+        cout << baseline_inc() << endl;
     cout << "\nprod\n";
     for (int i = 0; i < 10; ++i)
         cout << baseline_prod() << endl;
@@ -39,7 +41,7 @@ int main() {
     for (int i = 0; i < 10; ++i)
         cout << dot6() << endl;
 
-    cout << "\n2D:\n";
+    /*cout << "\n2D:\n";
     cout << "t1\n";
     for (int i = 0; i < 10; ++i)
         cout << t1() << endl;
