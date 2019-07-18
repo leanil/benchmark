@@ -6,7 +6,7 @@
 using scl_t = float;
 using time_precision = std::chrono::microseconds;
 
-constexpr int i_1d = 10000000, i_2d = 1000, j_2d = 1000, k_2d = 1000;
+constexpr int i_1d = 10000000, i_2d = 4000, j_2d = 4000, k_2d = 4000;
 
 template<int...>
 struct Prod;

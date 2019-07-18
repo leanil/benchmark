@@ -35,7 +35,7 @@ int main(int argc, char** argv)
             T* ptr = new T[i];
 
             void* device_ptr;
-            cudaMalloc(&device_ptr, i*sizeof(T));
+            cudaError_t cudaStat = cudaMalloc(&device_ptr, i*sizeof(T));
             
             auto t0 = std::chrono::high_resolution_clock::now();
             cudaMemcpy(device_ptr, ptr, i*sizeof(T), cudaMemcpyHostToDevice);

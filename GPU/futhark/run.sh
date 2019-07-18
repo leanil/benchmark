@@ -24,27 +24,58 @@
 # echo dot6
 # futhark-dataset -b -g [10000000]f32 -g [10000000]f32 -g [10000000]f32 -g [10000000]f32 | ./1d --entry-point dot6 -t /dev/stderr -r 10 > /dev/null
 
-i=4000
-j=4000
-k=4000
-futhark-opencl 2d.fut
+# i=4000
+# j=4000
+# k=4000
+# futhark-opencl 2d.fut
+# echo 3d
+# echo t1
+# futhark-dataset -b -g [$i][$j]f32 -g [$j]f32 | ./2d --entry-point t1 -t /dev/stderr -r 10 > /dev/null
+# echo t2
+# futhark-dataset -b -g [$i][$j]f32 -g [$j]f32 -g [$i]f32 | ./2d --entry-point t2 -t /dev/stderr -r 10 > /dev/null
+# echo t3
+# futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j]f32 | ./2d --entry-point t3 -t /dev/stderr -r 10 > /dev/null
+# echo t4
+# futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j]f32 -g [$j]f32 | ./2d --entry-point t4 -t /dev/stderr -r 10 > /dev/null
+# echo t5
+# futhark-dataset -b -g f32 -g [$i][$j]f32 -g f32 -g [$i][$j]f32 -g f32 -g [$j]f32 -g f32 -g [$j]f32 | ./2d --entry-point t5 -t /dev/stderr -r 10 > /dev/null
+# echo t6
+# futhark-dataset -b -g [$i]f32 -g [$j]f32 -g [$i]f32 -g [$j]f32 | ./2d --entry-point t6 -t /dev/stderr -r 10 > /dev/null
+# echo t7
+# futhark-dataset -b -g [$i][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t7 -t /dev/stderr -r 10 > /dev/null
+# echo t8
+# futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t8 -t /dev/stderr -r 10 > /dev/null
+# echo t9
+# futhark-dataset -b -g [$i][$k]f32 -g [$k][$j]f32 -g [$j]f32 -g [$j]f32 | ./2d --entry-point t9 -t /dev/stderr -r 10 > /dev/null
+# echo t10
+# futhark-dataset -b -g [$i][$k]f32 -g [$k][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t10 -t /dev/stderr -r 10 > /dev/null
+
+i=200
+j=200
+k=200
+l=200
+m=200
+futhark-opencl 3d.fut
+echo 3d
 echo t1
-futhark-dataset -b -g [$i][$j]f32 -g [$j]f32 | ./2d --entry-point t1 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$k][$l]f32 | ./3d --entry-point t1 -t /dev/stderr -r 10 > /dev/null
 echo t2
-futhark-dataset -b -g [$i][$j]f32 -g [$j]f32 -g [$i]f32 | ./2d --entry-point t2 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$k]f32 -g [$l]f32 | ./3d --entry-point t2 -t /dev/stderr -r 10 > /dev/null
 echo t3
-futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j]f32 | ./2d --entry-point t3 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$k][$l]f32 -g [$k]f32 -g [$j]f32 | ./3d --entry-point t3 -t /dev/stderr -r 10 > /dev/null
 echo t4
-futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j]f32 -g [$j]f32 | ./2d --entry-point t4 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$i][$j][$k]f32 -g [$k][$l]f32 | ./3d --entry-point t4 -t /dev/stderr -r 10 > /dev/null
 echo t5
-futhark-dataset -b -g f32 -g [$i][$j]f32 -g f32 -g [$i][$j]f32 -g f32 -g [$j]f32 -g f32 -g [$j]f32 | ./2d --entry-point t5 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$i][$j][$k]f32 -g [$k][$l]f32 -g [$k][$l]f32 | ./3d --entry-point t5 -t /dev/stderr -r 10 > /dev/null
 echo t6
-futhark-dataset -b -g [$i]f32 -g [$j]f32 -g [$i]f32 -g [$j]f32 | ./2d --entry-point t6 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g f32 -g [$i][$j][$k]f32 -g f32 -g [$i][$j][$k]f32 -g f32 -g [$k][$l]f32 -g f32 -g [$k][$l]f32 | ./3d --entry-point t6 -t /dev/stderr -r 10 > /dev/null
 echo t7
-futhark-dataset -b -g [$i][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t7 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g f32 -g [$i][$j][$k]f32 -g f32 -g [$i][$j][$k]f32 -g f32 -g [$k][$l]f32 -g f32 -g [$k][$l]f32 -g f32 -g [$k]f32 -g f32 -g [$k]f32 -g f32 -g [$j]f32 -g f32 -g [$j]f32 | ./3d --entry-point t7 -t /dev/stderr -r 10 > /dev/null
 echo t8
-futhark-dataset -b -g [$i][$j]f32 -g [$i][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t8 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$k][$l]f32 -g [$j][$m]f32 | ./3d --entry-point t8 -t /dev/stderr -r 10 > /dev/null
 echo t9
-futhark-dataset -b -g [$i][$k]f32 -g [$k][$j]f32 -g [$j]f32 -g [$j]f32 | ./2d --entry-point t9 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$k][$l]f32 -g [$l]f32 | ./3d --entry-point t9 -t /dev/stderr -r 10 > /dev/null
 echo t10
-futhark-dataset -b -g [$i][$k]f32 -g [$k][$j]f32 -g [$j][$k]f32 -g [$k]f32 | ./2d --entry-point t10 -t /dev/stderr -r 10 > /dev/null
+futhark-dataset -b -g [$i][$j][$k]f32 -g [$i][$k][$l]f32 -g [$l]f32 | ./3d --entry-point t10 -t /dev/stderr -r 10 > /dev/null
+echo t11
+futhark-dataset -b -g [$i]f32 -g [$j]f32 -g [$k]f32 -g [$i][$k][$l]f32 -g [$l]f32 | ./3d --entry-point t11 -t /dev/stderr -r 10 > /dev/null
