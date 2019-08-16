@@ -1,8 +1,8 @@
 #ifndef DATA_H_
 #define DATA_H_
 
-#include <cstdlib>
 #include "sizes.h"
+#include <cstdlib>
 
 template <typename T>
 class Data

@@ -1,8 +1,8 @@
-#include <array>
-#include <benchmark/benchmark.h>
 #include "data.h"
 #include "sizes.h"
 #include "util.h"
+#include <array>
+#include <benchmark/benchmark.h>
 
 using namespace std;
 
@@ -95,7 +95,7 @@ void bench(benchmark::State &state)
         bench_funs[state.range(0)](data, state.range(1));
     set_proc_speed(state, state.range(1) * 8);
 }
-BENCHMARK(bench)->Apply(Sizes<double>::set<bench_funs.size()>)->ComputeStatistics("max", max_stats);
+BENCHMARK(bench)->Apply(Sizes<double>::set<bench_funs.size(),12>)->ComputeStatistics("max", max_stats);
 
 extern "C"
 {
@@ -113,6 +113,6 @@ void asm_bench(benchmark::State &state)
         asm_funs[state.range(0)](data, state.range(1), state.max_iterations);
     set_proc_speed(state, state.range(1) * 8);
 }
-BENCHMARK(asm_bench)->Apply(Sizes<double>::set<asm_funs.size()>)->ComputeStatistics("max", max_stats);
+BENCHMARK(asm_bench)->Apply(Sizes<double>::set<asm_funs.size(),12>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();

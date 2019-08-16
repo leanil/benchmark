@@ -10,11 +10,10 @@
 template <typename T>
 class Sizes
 {
-    static std::vector<int> sizes;
-
 public:
     static const std::vector<int> &get(int mul_of = 1) // sizes must be a multiple of this
     {
+        static std::vector<int> sizes;
         if (sizes.empty())
         {
             std::cerr << "data sizes (Bytes):" << std::endl;
@@ -22,7 +21,6 @@ public:
             std::getline(std::cin, line);
             std::stringstream ss(line);
             int s;
-            const int mul_of = 12;
             while (ss >> s)
             {
                 s /= sizeof(T);
@@ -31,16 +29,13 @@ public:
         }
         return sizes;
     }
-    template <int BENCH_CNT>
+    template <int BENCH_CNT, int MUL_OF>
     static void set(benchmark::internal::Benchmark *bench)
     {
         for (int b = 0; b < BENCH_CNT; ++b)
-            for (int x : get())
+            for (int x : get(MUL_OF))
                 bench->Args({b, x});
     }
 };
-
-template <typename T>
-std::vector<int> Sizes<T>::sizes;
 
 #endif // SIZES_H_
