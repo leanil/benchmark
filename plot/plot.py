@@ -17,6 +17,7 @@ def pin_to_core():
         return ["taskset", "0x4"]
     return None
 
+
 def collect_data():
     if args.step_add != 0 or args.step_mul != 1:
         sizes = []
@@ -30,7 +31,7 @@ def collect_data():
                      if args.min_size <= int(s) <= args.max_size]
     time_stamp = datetime.fromtimestamp(
         time.time()).strftime('%H-%M-%S_%Y-%m-%d')
-    out_file = f"data/{time_stamp}.txt"
+    out_file = f"{base}/data/{time_stamp}.txt"
     bench_args = pin_to_core() + [
         args.benchmark,
         f"--benchmark_repetitions={args.repetitions}",
@@ -46,6 +47,8 @@ def collect_data():
     return out_file
 
 # use log2 scale on sizes, if it makes the gaps more even
+
+
 def use_log_scale(sizes):
     def gap_ratio(sizes):
         gaps = []
@@ -55,12 +58,15 @@ def use_log_scale(sizes):
     log_sizes = [math.log(s, 2) for s in sizes]
     return gap_ratio(log_sizes) < gap_ratio(sizes)
 
+
 def get_cache_sizes():
     if platform.system() == "Linux":
-        sizes=subprocess.check_output("lscpu | awk ' /'cache'/ {print $3} '", shell=True, text=True).splitlines()
+        sizes = subprocess.check_output(
+            "lscpu | awk ' /'cache'/ {print $3} '", shell=True, text=True).splitlines()
         sizes.pop(1)
         return [int(s[:-1])*1024 for s in sizes]
     return None
+
 
 def plot_data():
     reader = csv.reader(args.plot)
@@ -75,7 +81,7 @@ def plot_data():
     for name, y in data.items():
         plt.plot(sizes, y, label=name)
     if use_log_scale(sizes):
-        plt.xscale("log",basex=2)
+        plt.xscale("log", basex=2)
     plt.xlabel('data size (Bytes)')
     plt.ylabel('data processing speed (GiB/s)')
     for s in get_cache_sizes():
@@ -85,11 +91,12 @@ def plot_data():
     plt.show()
 
 
+base = os.path.dirname(__file__)
 parser = argparse.ArgumentParser(
     description="Run the specified benchmark and plot the result.")
 parser.add_argument("-b", "--benchmark",
                     help="path to the benchmark executable")
-parser.add_argument("--sizes", default=f"{os.path.dirname(__file__)}/sizes.txt",
+parser.add_argument("--sizes", default=f"{base}/sizes.txt",
                     help="file containing benchmark sizes (1 integer per row)")
 parser.add_argument("-s", "--min_size", type=int, default=1,
                     help="minimum benchmark size (bytes)")
