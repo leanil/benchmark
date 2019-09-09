@@ -95,7 +95,7 @@ void bench(benchmark::State &state)
         bench_funs[state.range(0)](data, state.range(1));
     set_proc_speed(state, state.range(1) * 8);
 }
-BENCHMARK(bench)->Apply(Sizes<double>::set<bench_funs.size(),12>)->ComputeStatistics("max", max_stats);
+BENCHMARK(bench)->Apply(Sizes<double>::set<bench_funs.size(), 12>)->ComputeStatistics("max", max_stats);
 
 extern "C"
 {
@@ -105,14 +105,14 @@ extern "C"
     double bench9(double *A, int S, int rep);
 }
 
-constexpr array asm_funs{bench6,bench7,bench8,bench9};
+constexpr array asm_funs{bench6, bench7, bench8, bench9};
 void asm_bench(benchmark::State &state)
 {
     double *data = Data<double>::get();
     while (state.KeepRunningBatch(state.max_iterations))
         asm_funs[state.range(0)](data, state.range(1), state.max_iterations);
-    set_proc_speed(state, state.range(1) * 8);
+    set_proc_speed(state, state.range(1) * sizeof(double));
 }
-BENCHMARK(asm_bench)->Apply(Sizes<double>::set<asm_funs.size(),12>)->ComputeStatistics("max", max_stats);
+BENCHMARK(asm_bench)->Apply(Sizes<double>::set<asm_funs.size(), 12>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();

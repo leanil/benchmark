@@ -2,11 +2,13 @@ import argparse
 import csv
 from datetime import datetime
 from collections import defaultdict
+import json
 import math
 import matplotlib.pyplot as plt
 import os
 import platform
 import subprocess
+import sys
 import time
 
 
@@ -16,6 +18,21 @@ def pin_to_core():
     elif platform.system() == "Linux":
         return ["taskset", "0x4"]
     return None
+
+
+def update_results(old_data, new_data):
+    aggregate_logic = {
+        "real_time": min,
+        "cpu_time": min,
+        "processing_speed": max,
+        "iterations": max
+    }
+    for old, new in zip(old_data["benchmarks"], new_data["benchmarks"]):
+        for key in old:
+            if key in aggregate_logic:
+                old[key] = aggregate_logic[key](old[key], new[key])
+            else:
+                assert old[key] == new[key]
 
 
 def collect_data():
@@ -30,26 +47,31 @@ def collect_data():
             sizes = [int(s) for s in size_file.readlines()
                      if args.min_size <= int(s) <= args.max_size]
     time_stamp = datetime.fromtimestamp(
-        time.time()).strftime('%H-%M-%S_%Y-%m-%d')
+        time.time()).strftime('%Y-%m-%d_%H-%M-%S')
     out_file = f"{base}/data/{time_stamp}.txt"
     bench_args = pin_to_core() + [
         args.benchmark,
-        f"--benchmark_repetitions={args.repetitions}",
-        "--benchmark_report_aggregates_only=true",
-        "--benchmark_out=" + out_file,
-        "--benchmark_out_format=csv"] + \
+        "--benchmark_format=json"] + \
         ([f"--benchmark_filter={args.filter}"]
          if args.filter else []) + \
         args.extra
     if not os.path.exists("data"):
         os.mkdir("data")
-    subprocess.run(bench_args, input=' '.join(map(str, sizes)), text=True)
+    for i in range(args.repetitions):
+        proc = subprocess.run(bench_args, input=' '.join(map(str, sizes)),
+                              text=True, stdout=subprocess.PIPE)
+        result = json.loads(proc.stdout)
+        if i == 0:
+            data = result
+        else:
+            update_results(data, result)
+    with open(out_file, 'w') as f:
+        json.dump(data, f)
     return out_file
-
-# use log2 scale on sizes, if it makes the gaps more even
 
 
 def use_log_scale(sizes):
+    """use log2 scale on sizes, if it makes the gaps more even"""
     def gap_ratio(sizes):
         gaps = []
         for i in range(len(sizes)-1):
@@ -69,15 +91,14 @@ def get_cache_sizes():
 
 
 def plot_data():
-    reader = csv.reader(args.plot)
     data = defaultdict(list)
     sizes = []
-    for row in reader:
-        if row[0].endswith("max"):
-            name, size = row[0].rsplit('/', 1)
-            data[name].append(float(row[10])/(1 << 30))
-            if len(data) == 1:
-                sizes.append(int(size[:-4]))
+    for bench in json.load(args.plot)["benchmarks"]:
+        name = bench["name"].rsplit('/', 1)[0]
+        size = int(bench["data_size"])
+        data[name].append(float(bench["processing_speed"])/(1 << 30))
+        if len(data) == 1:
+            sizes.append(int(size))
     for name, y in data.items():
         plt.plot(sizes, y, label=name)
     if use_log_scale(sizes):
@@ -117,6 +138,9 @@ parser.add_argument("extra", nargs=argparse.REMAINDER,
                     help="extra args passed to google benchmark")
 
 args = parser.parse_args()
+if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit()
 if args.extra and args.extra[0] == "--":
     args.extra.pop(0)
 if not args.plot:

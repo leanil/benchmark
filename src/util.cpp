@@ -5,7 +5,8 @@ using namespace std;
 
 void set_proc_speed(benchmark::State &state, int bytes)
 {
-    state.counters["ProcessingSpeed"] = benchmark::Counter(
+    state.counters["data_size"] = bytes;
+    state.counters["processing_speed"] = benchmark::Counter(
         bytes, benchmark::Counter::kIsIterationInvariantRate,
         benchmark::Counter::OneK::kIs1024);
 }

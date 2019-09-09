@@ -23,6 +23,6 @@ void read(benchmark::State &state)
         bench_funs[state.range(0)](data, state.range(1), state.max_iterations);
     set_proc_speed(state, state.range(1));
 }
-BENCHMARK(read)->Apply(Sizes<char>::set<bench_funs.size(),256>)->ComputeStatistics("max", max_stats);
+BENCHMARK(read)->Apply(Sizes<char>::set<bench_funs.size(), 256>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();
