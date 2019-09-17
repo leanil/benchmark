@@ -1,6 +1,7 @@
 #ifndef SIZES_H_
 #define SIZES_H_
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -11,7 +12,7 @@ template <typename T>
 class Sizes
 {
 public:
-    static const std::vector<int> &get(int mul_of = 1) // sizes must be a multiple of this
+    static std::vector<int> get(int mul_of = 1) // sizes must be a multiple of this
     {
         static std::vector<int> sizes;
         if (sizes.empty())
@@ -22,19 +23,25 @@ public:
             std::stringstream ss(line);
             int s;
             while (ss >> s)
-            {
-                s /= sizeof(T);
-                sizes.push_back(s + (s % mul_of ? mul_of - s % mul_of : 0));
-            }
+                sizes.push_back(s / sizeof(T));
+            std::sort(sizes.begin(), sizes.end());
         }
-        return sizes;
+        std::vector<int> adjusted_sizes(sizes.size());
+        std::transform(sizes.begin(), sizes.end(), adjusted_sizes.begin(),
+                       [&](int x) { return (x + mul_of - 1) / mul_of * mul_of; });
+        max_size(adjusted_sizes.back());
+        return adjusted_sizes;
     }
-    template <int BENCH_CNT, int MUL_OF>
+    static int max_size(int new_size = 0)
+    {
+        static int ms = 0;
+        return ms = std::max(ms, new_size);
+    }
+    template <int MUL_OF>
     static void set(benchmark::internal::Benchmark *bench)
     {
-        for (int b = 0; b < BENCH_CNT; ++b)
-            for (int x : get(MUL_OF))
-                bench->Args({b, x});
+        for (int x : get(MUL_OF))
+            bench->Arg(x);
     }
 };
 

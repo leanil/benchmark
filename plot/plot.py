@@ -1,7 +1,6 @@
 import argparse
 import csv
 from datetime import datetime
-from collections import defaultdict
 import json
 import math
 import matplotlib.pyplot as plt
@@ -73,10 +72,11 @@ def collect_data():
 def use_log_scale(sizes):
     """use log2 scale on sizes, if it makes the gaps more even"""
     def gap_ratio(sizes):
-        gaps = []
-        for i in range(len(sizes)-1):
-            gaps.append(sizes[i+1]-sizes[i])
-        return max(gaps) / min(gaps)
+        max_gap = min_gap = sizes[1]-sizes[0]
+        for i in range(1, len(sizes)-1):
+            max_gap = max(max_gap, sizes[i+1]-sizes[i])
+            min_gap = min(min_gap, sizes[i+1]-sizes[i])
+        return max_gap / min_gap
     log_sizes = [math.log(s, 2) for s in sizes]
     return gap_ratio(log_sizes) < gap_ratio(sizes)
 
@@ -91,16 +91,16 @@ def get_cache_sizes():
 
 
 def plot_data():
-    data = defaultdict(list)
-    sizes = []
+    data = {}
     for bench in json.load(args.plot)["benchmarks"]:
         name = bench["name"].rsplit('/', 1)[0]
-        size = int(bench["data_size"])
-        data[name].append(float(bench["processing_speed"])/(1 << 30))
-        if len(data) == 1:
-            sizes.append(int(size))
-    for name, y in data.items():
-        plt.plot(sizes, y, label=name)
+        if not name in data:
+            data[name] = ([],[])
+        data[name][0].append(int(bench["data_size"]))
+        data[name][1].append(float(bench["processing_speed"])/(1 << 30))
+    for name, values in data.items():
+        plt.plot(values[0], values[1], "o-", label=name, markersize=2)
+    sizes = list(data.values())[0][0]
     if use_log_scale(sizes):
         plt.xscale("log", basex=2)
     plt.xlabel('data size (Bytes)')

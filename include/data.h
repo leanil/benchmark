@@ -7,27 +7,18 @@
 template <typename T>
 class Data
 {
-    static T *data;
-
 public:
-    static T *get(int size)
+    static T *get(int size = Sizes<T>::max_size())
     {
+        static T *data = nullptr;
         if (!data)
         {
-            data = (T *)aligned_alloc(32, size * sizeof(T));
+            data = (T *)aligned_alloc(32, (size * sizeof(T) + 31) / 32 * 32);
             for (int i = 0; i < size; ++i)
                 data[i] = rand() % 128;
         }
         return data;
     }
-    static T *get()
-    {
-        auto sizes = Sizes<T>::get();
-        return get(*max_element(sizes.begin(), sizes.end()));
-    }
 };
-
-template <typename T>
-T *Data<T>::data = nullptr;
 
 #endif // DATA_H_

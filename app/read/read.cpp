@@ -2,7 +2,6 @@
 #include "data.h"
 #include "sizes.h"
 #include "util.h"
-#include <array>
 
 using namespace std;
 
@@ -14,15 +13,16 @@ extern "C"
     void bench4(char *, size_t, size_t);
 }
 
-constexpr array bench_funs{bench1, bench2, bench3, bench4};
-
-void read(benchmark::State &state)
+template<typename F>
+void read(benchmark::State &state, F f)
 {
     char *data = Data<char>::get();
     while (state.KeepRunningBatch(state.max_iterations))
-        bench_funs[state.range(0)](data, state.range(1), state.max_iterations);
-    set_proc_speed(state, state.range(1));
+        f(data, state.range(0), state.max_iterations);
+    set_proc_speed(state, state.range(0) * sizeof(char));
 }
-BENCHMARK(read)->Apply(Sizes<char>::set<bench_funs.size(), 256>)->ComputeStatistics("max", max_stats);
-
+BENCHMARK_CAPTURE(read, movdqa, bench1)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(read, vmovdqa, bench2)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(read, movapd, bench2)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(read, vmovapd, bench3)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
 BENCHMARK_MAIN();

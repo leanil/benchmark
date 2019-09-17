@@ -88,14 +88,20 @@ double bench5(double *A, int S)
 
 constexpr array bench_funs{bench0, bench1, bench2, bench3, bench4, bench5};
 
-void bench(benchmark::State &state)
+template<typename F>
+void seq_sum(benchmark::State &state, F f)
 {
     double *data = Data<double>::get();
     for (auto _ : state)
-        bench_funs[state.range(0)](data, state.range(1));
-    set_proc_speed(state, state.range(1) * 8);
+        benchmark::DoNotOptimize(f(data, state.range(0)));
+    set_proc_speed(state, state.range(0) * sizeof(double));
 }
-BENCHMARK(bench)->Apply(Sizes<double>::set<bench_funs.size(), 12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 1var, bench0)->Apply(Sizes<double>::set<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 2var, bench1)->Apply(Sizes<double>::set<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 3var, bench2)->Apply(Sizes<double>::set<3>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 4var, bench3)->Apply(Sizes<double>::set<4>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 6var, bench4)->Apply(Sizes<double>::set<6>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 12var, bench5)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
 
 extern "C"
 {
@@ -105,14 +111,17 @@ extern "C"
     double bench9(double *A, int S, int rep);
 }
 
-constexpr array asm_funs{bench6, bench7, bench8, bench9};
-void asm_bench(benchmark::State &state)
+template <typename F>
+void seq_sum_asm(benchmark::State &state, F f)
 {
     double *data = Data<double>::get();
     while (state.KeepRunningBatch(state.max_iterations))
-        asm_funs[state.range(0)](data, state.range(1), state.max_iterations);
-    set_proc_speed(state, state.range(1) * sizeof(double));
+        f(data, state.range(0), state.max_iterations);
+    set_proc_speed(state, state.range(0) * sizeof(double));
 }
-BENCHMARK(asm_bench)->Apply(Sizes<double>::set<asm_funs.size(), 12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, nomov_combine, bench6)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, mov_combine, bench7)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, nomov_nocombine, bench8)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, mov_nocombine, bench9)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();
