@@ -49,7 +49,7 @@ def collect_data():
                      if args.min_size <= int(s) <= args.max_size]
     time_stamp = datetime.fromtimestamp(
         time.time()).strftime("%Y-%m-%d_%H-%M-%S")
-    out_file = f"{base}/data/{time_stamp}.txt"
+    out_file = f"{base}/data/{time_stamp}.json"
     bench_args = pin_to_core() + [
         args.benchmark,
         "--benchmark_format=json"] + \
@@ -116,9 +116,10 @@ def plot_data():
             data[name] = ([], [])
         data[name][0].append(int(bench[x_label]))
         data[name][1].append(float(bench["processing_speed"])/(1 << 30))
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
     for name, values in data.items():
-        ax.plot(values[0], values[1], "o-", label=name, markersize=2)
+        ax.plot(values[0], values[1], "o-", label=name,
+                linewidth=0.5, markersize=2)
     sizes = list(data.values())[0][0]
     if use_log_scale(sizes):
         ax.set_xscale("log", basex=2)
@@ -131,7 +132,11 @@ def plot_data():
         if sizes[0] <= s <= sizes[-1]:
             ax.axvline(s, color='black', dashes=[2, 10])
     ax.legend()
-    plt.show()
+    fig.set_size_inches(18.53, 9.55)
+    if(args.savefig):
+        fig.savefig(args.savefig)
+    else:
+        plt.show()
 
 
 base = os.path.dirname(__file__)
@@ -155,6 +160,8 @@ parser.add_argument("-p", "--plot", help="just plot the given data file")
 parser.add_argument("-f", "--filter", help="benchmark tasks to run (regex)")
 parser.add_argument("-r", "--repetitions", type=int, default=3,
                     help="repeat measurements multiple times to reduce noise (default: 3)")
+parser.add_argument(
+    "--savefig", help="save the plot with the given name, instead of showing")
 parser.add_argument("extra", nargs=argparse.REMAINDER,
                     help="extra args passed to google benchmark")
 
