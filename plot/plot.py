@@ -4,8 +4,10 @@ from datetime import datetime
 import json
 import math
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import os
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -46,7 +48,7 @@ def collect_data():
             sizes = [int(s) for s in size_file.readlines()
                      if args.min_size <= int(s) <= args.max_size]
     time_stamp = datetime.fromtimestamp(
-        time.time()).strftime('%Y-%m-%d_%H-%M-%S')
+        time.time()).strftime("%Y-%m-%d_%H-%M-%S")
     out_file = f"{base}/data/{time_stamp}.txt"
     bench_args = pin_to_core() + [
         args.benchmark,
@@ -56,10 +58,19 @@ def collect_data():
         args.extra
     if not os.path.exists("data"):
         os.mkdir("data")
+    t0 = datetime.fromtimestamp(time.time())
     for i in range(args.repetitions):
+        print(f"run #{i+1} / {args.repetitions}", end='\r')
         proc = subprocess.run(bench_args, input=' '.join(map(str, sizes)),
-                              text=True, stdout=subprocess.PIPE)
+                              text=True, capture_output=True)
+        if i == 0:
+            t1 = datetime.fromtimestamp(time.time())
+            end = t1 + (t1-t0)*(args.repetitions-1)
+            print("ETA:", end.strftime("%H:%M:%S"))
+            print("total length:", (t1-t0)*args.repetitions)
         result = json.loads(proc.stdout)
+        if result["context"]["cpu_scaling_enabled"]:
+            print("WARNING: CPU scaling is enabled.")
         if i == 0:
             data = result
         else:
@@ -92,23 +103,34 @@ def get_cache_sizes():
 
 def plot_data():
     data = {}
-    for bench in json.load(args.plot)["benchmarks"]:
+    x_label = None
+    for bench in json.load(open(args.plot))["benchmarks"]:
+        if not x_label:
+            for key in bench:
+                if key.startswith("x_label"):
+                    x_label = key
         name = bench["name"].rsplit('/', 1)[0]
+        if args.filter and not re.search(args.filter, name):
+            continue
         if not name in data:
-            data[name] = ([],[])
-        data[name][0].append(int(bench["data_size"]))
+            data[name] = ([], [])
+        data[name][0].append(int(bench[x_label]))
         data[name][1].append(float(bench["processing_speed"])/(1 << 30))
+    _, ax = plt.subplots()
     for name, values in data.items():
-        plt.plot(values[0], values[1], "o-", label=name, markersize=2)
+        ax.plot(values[0], values[1], "o-", label=name, markersize=2)
     sizes = list(data.values())[0][0]
     if use_log_scale(sizes):
-        plt.xscale("log", basex=2)
-    plt.xlabel('data size (Bytes)')
-    plt.ylabel('data processing speed (GiB/s)')
+        ax.set_xscale("log", basex=2)
+    else:
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.set(xlabel=x_label.split(':')[1],
+           ylabel="data processing speed (GiB/s)",
+           title=args.plot)
     for s in get_cache_sizes():
         if sizes[0] <= s <= sizes[-1]:
-            plt.axvline(s, color='black', dashes=[2, 10])
-    plt.legend()
+            ax.axvline(s, color='black', dashes=[2, 10])
+    ax.legend()
     plt.show()
 
 
@@ -129,8 +151,7 @@ parser.add_argument("--step_mul", type=int, default=1,
                     help="multiplicative part of size step (overrides SIZES)")
 parser.add_argument("-c", "--collect", action='store_true',
                     help="just collect data (don't plot it)")
-parser.add_argument("-p", "--plot", type=open,
-                    help="just plot the given data file")
+parser.add_argument("-p", "--plot", help="just plot the given data file")
 parser.add_argument("-f", "--filter", help="benchmark tasks to run (regex)")
 parser.add_argument("-r", "--repetitions", type=int, default=3,
                     help="repeat measurements multiple times to reduce noise (default: 3)")
@@ -144,6 +165,6 @@ if len(sys.argv) == 1:
 if args.extra and args.extra[0] == "--":
     args.extra.pop(0)
 if not args.plot:
-    args.plot = open(collect_data())
+    args.plot = collect_data()
 if not args.collect:
     plot_data()

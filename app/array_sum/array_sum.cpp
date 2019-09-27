@@ -88,13 +88,14 @@ double bench5(double *A, int S)
 
 constexpr array bench_funs{bench0, bench1, bench2, bench3, bench4, bench5};
 
-template<typename F>
+template <typename F>
 void seq_sum(benchmark::State &state, F f)
 {
     double *data = Data<double>::get();
     for (auto _ : state)
         benchmark::DoNotOptimize(f(data, state.range(0)));
     set_proc_speed(state, state.range(0) * sizeof(double));
+    state.counters["x_label:data size (Bytes)"] = state.range(0) * sizeof(double);
 }
 BENCHMARK_CAPTURE(seq_sum, 1var, bench0)->Apply(Sizes<double>::set<1>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum, 2var, bench1)->Apply(Sizes<double>::set<2>)->ComputeStatistics("max", max_stats);
@@ -118,6 +119,7 @@ void seq_sum_asm(benchmark::State &state, F f)
     while (state.KeepRunningBatch(state.max_iterations))
         f(data, state.range(0), state.max_iterations);
     set_proc_speed(state, state.range(0) * sizeof(double));
+    state.counters["x_label:data size (Bytes)"] = state.range(0) * sizeof(double);
 }
 BENCHMARK_CAPTURE(seq_sum_asm, nomov_combine, bench6)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum_asm, mov_combine, bench7)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);

@@ -2,6 +2,7 @@
 #define SIZES_H_
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -29,7 +30,7 @@ public:
         std::vector<int> adjusted_sizes(sizes.size());
         std::transform(sizes.begin(), sizes.end(), adjusted_sizes.begin(),
                        [&](int x) { return (x + mul_of - 1) / mul_of * mul_of; });
-        max_size(adjusted_sizes.back());
+        adjusted_sizes.erase(std::unique(adjusted_sizes.begin(), adjusted_sizes.end()), adjusted_sizes.end());
         return adjusted_sizes;
     }
     static int max_size(int new_size = 0)
@@ -40,8 +41,20 @@ public:
     template <int MUL_OF>
     static void set(benchmark::internal::Benchmark *bench)
     {
-        for (int x : get(MUL_OF))
+        auto sizes = get(MUL_OF);
+        for (int x : sizes)
             bench->Arg(x);
+        max_size(sizes.back());
+    }
+    template <int MUL_OF>
+    static void set_mat(benchmark::internal::Benchmark *bench)
+    {
+        auto sizes = get(MUL_OF);
+        static const std::array fixed_sizes{120, 360, 600};
+        for (int x : fixed_sizes)
+            for (int y : sizes)
+                bench->Args({x, y});
+        max_size(fixed_sizes.back() * sizes.back());
     }
 };
 

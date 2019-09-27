@@ -20,6 +20,7 @@ void read(benchmark::State &state, F f)
     while (state.KeepRunningBatch(state.max_iterations))
         f(data, state.range(0), state.max_iterations);
     set_proc_speed(state, state.range(0) * sizeof(char));
+    state.counters["x_label:data size (Bytes)"] = state.range(0) * sizeof(char);
 }
 BENCHMARK_CAPTURE(read, movdqa, bench1)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(read, vmovdqa, bench2)->Apply(Sizes<char>::set<256>)->ComputeStatistics("max", max_stats);
