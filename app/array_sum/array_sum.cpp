@@ -1,7 +1,6 @@
 #include "data.h"
 #include "sizes.h"
 #include "util.h"
-#include <array>
 #include <benchmark/benchmark.h>
 
 using namespace std;
@@ -85,8 +84,6 @@ double bench5(double *A, int S)
     }
     return sum0 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8 + sum9 + sum10 + sum11;
 }
-
-constexpr array bench_funs{bench0, bench1, bench2, bench3, bench4, bench5};
 
 template <typename F>
 void seq_sum(benchmark::State &state, F f)
