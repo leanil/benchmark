@@ -47,17 +47,14 @@ def collect_data():
         with open(args.sizes) as size_file:
             sizes = [int(s) for s in size_file.readlines()
                      if args.min_size <= int(s) <= args.max_size]
-    time_stamp = datetime.fromtimestamp(
-        time.time()).strftime("%Y-%m-%d_%H-%M-%S")
-    out_file = f"{base}/data/{time_stamp}.json"
     bench_args = pin_to_core() + [
         args.benchmark,
         "--benchmark_format=json"] + \
         ([f"--benchmark_filter={args.filter}"]
          if args.filter else []) + \
         args.extra
-    if not os.path.exists("data"):
-        os.mkdir("data")
+    if not os.path.exists(f"{base}/data"):
+        os.mkdir(f"{base}/data")
     t0 = datetime.fromtimestamp(time.time())
     for i in range(args.repetitions):
         print(f"run #{i+1} / {args.repetitions}", end='\r')
@@ -75,6 +72,9 @@ def collect_data():
             data = result
         else:
             update_results(data, result)
+    out_file = f"{base}/data/{t0.strftime('%Y-%m-%d_%H-%M-%S')}_" \
+        f"{os.path.basename(args.benchmark)}_" \
+        f"{result['context']['host_name']}.json"
     with open(out_file, 'w') as f:
         json.dump(data, f)
     return out_file
@@ -92,19 +92,11 @@ def use_log_scale(sizes):
     return gap_ratio(log_sizes) < gap_ratio(sizes)
 
 
-def get_cache_sizes():
-    if platform.system() == "Linux":
-        sizes = subprocess.check_output(
-            "lscpu | awk ' /'cache'/ {print $3} '", shell=True, text=True).splitlines()
-        sizes.pop(1)
-        return [int(s[:-1])*1024 for s in sizes]
-    return None
-
-
 def plot_data():
     data = {}
     x_label = None
-    for bench in json.load(open(args.plot))["benchmarks"]:
+    result = json.load(open(args.plot))
+    for bench in result["benchmarks"]:
         if not x_label:
             for key in bench:
                 if key.startswith("x_label"):
@@ -128,15 +120,16 @@ def plot_data():
     ax.set(xlabel=x_label.split(':')[1],
            ylabel="data processing speed (GiB/s)",
            title=args.plot)
-    for s in get_cache_sizes():
-        if sizes[0] <= s <= sizes[-1]:
-            ax.axvline(s, color='black', dashes=[2, 10])
+    for cache in result["context"]["caches"]:
+        if cache["type"] == "Data" and sizes[0] <= cache["size"] <= sizes[-1]:
+            ax.axvline(cache["size"], color='black', dashes=[2, 10])
     ax.legend()
     fig.set_size_inches(18.53, 9.55)
-    if(args.savefig):
-        fig.savefig(args.savefig)
-    else:
+    if(args.savefig == None):
         plt.show()
+    else:
+        fig.savefig(args.savefig if args.savefig else
+                    os.path.splitext(args.plot)[0]+".png")
 
 
 base = os.path.dirname(__file__)
@@ -160,8 +153,8 @@ parser.add_argument("-p", "--plot", help="just plot the given data file")
 parser.add_argument("-f", "--filter", help="benchmark tasks to run (regex)")
 parser.add_argument("-r", "--repetitions", type=int, default=3,
                     help="repeat measurements multiple times to reduce noise (default: 3)")
-parser.add_argument(
-    "--savefig", help="save the plot with the given name, instead of showing")
+parser.add_argument("--savefig", nargs='?', const="",
+                    help="save the plot with the given name, instead of showing")
 parser.add_argument("extra", nargs=argparse.REMAINDER,
                     help="extra args passed to google benchmark")
 
