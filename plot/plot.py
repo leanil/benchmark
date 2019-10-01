@@ -121,18 +121,21 @@ def plot_data():
            ylabel="data processing speed (GiB/s)",
            title=args.plot)
     for cache in result["context"]["caches"]:
-        if cache["type"] == "Data" and sizes[0] <= cache["size"] <= sizes[-1]:
+        if cache["type"] != "Instruction" and sizes[0] <= cache["size"] <= sizes[-1]:
             ax.axvline(cache["size"], color='black', dashes=[2, 10])
     ax.legend()
     fig.set_size_inches(18.53, 9.55)
-    if(args.savefig == None):
+    if args.savefig == None:
         plt.show()
+    elif args.savefig == "":
+        fig.savefig(os.path.splitext(args.plot)[0]+".png")
+    elif os.path.dirname(args.savefig):
+        fig.savefig(args.savefig)
     else:
-        fig.savefig(args.savefig if args.savefig else
-                    os.path.splitext(args.plot)[0]+".png")
+        fig.savefig(f"{base}/data/{args.savefig}")
 
 
-base = os.path.dirname(__file__)
+base = os.path.dirname(os.path.abspath(__file__))
 parser = argparse.ArgumentParser(
     description="Run the specified benchmark and plot the result.")
 parser.add_argument("-b", "--benchmark",
