@@ -50,11 +50,12 @@ public:
     static void set_mat(benchmark::internal::Benchmark *bench)
     {
         auto sizes = get(MUL_OF);
-        static const std::array fixed_sizes{120, 360, 600};
-        for (int x : fixed_sizes)
+        //static const std::array fixed_sizes{120, 360, 600};
+        for (int x = 6; x < 800; x += 6)
             for (int y : sizes)
                 bench->Args({x, y});
-        max_size(fixed_sizes.back() * sizes.back());
+        //max_size(fixed_sizes.back() * sizes.back());
+        max_size(800 * sizes.back());
     }
 };
 

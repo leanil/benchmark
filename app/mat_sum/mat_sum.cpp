@@ -3,6 +3,7 @@
 #include "util.h"
 #include <array>
 #include <benchmark/benchmark.h>
+#include <x86intrin.h>
 
 using namespace std;
 
@@ -78,6 +79,30 @@ double mat_sum_4(double *a, int n, int m)
     return sum0 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8 + sum9 + sum10 + sum11;
 }
 
+double mat_sum_6(double *A, int n, int m)
+{
+    __m128d sum0, sum1, sum2, sum3, sum4, sum5;
+    sum0 = sum1 = sum2 = sum3 = sum4 = sum5 = _mm_setzero_pd();
+    for (int j = 0; j < m; j += 2)
+        for (int i = 0; i < n; i += 6)
+        {
+            sum0 = _mm_add_pd(sum0, _mm_load_pd(A + i * m + j));
+            sum1 = _mm_add_pd(sum1, _mm_load_pd(A + (i + 1) * m + j));
+            sum2 = _mm_add_pd(sum2, _mm_load_pd(A + (i + 2) * m + j));
+            sum3 = _mm_add_pd(sum3, _mm_load_pd(A + (i + 3) * m + j));
+            sum4 = _mm_add_pd(sum4, _mm_load_pd(A + (i + 4) * m + j));
+            sum5 = _mm_add_pd(sum5, _mm_load_pd(A + (i + 5) * m + j));
+        }
+    sum0 = _mm_add_pd(sum0, sum1);
+    sum0 = _mm_add_pd(sum0, sum2);
+    sum0 = _mm_add_pd(sum0, sum3);
+    sum0 = _mm_add_pd(sum0, sum4);
+    sum0 = _mm_add_pd(sum0, sum5);
+    sum1 = _mm_unpackhi_pd(sum0, sum1);
+    sum0 = _mm_add_pd(sum0, sum1);
+    return _mm_cvtsd_f64(sum0);
+}
+
 template <typename F>
 void stride_sum(benchmark::State &state, F f, int rows, int cols)
 {
@@ -87,15 +112,34 @@ void stride_sum(benchmark::State &state, F f, int rows, int cols)
     set_proc_speed(state, state.range(0) * state.range(1) * sizeof(double));
     state.counters["x_label:dimension size (Bytes)"] = state.range(1) * sizeof(double);
 }
-BENCHMARK_CAPTURE(stride_sum, 1var_rows, mat_sum_0, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 2var_rows, mat_sum_1, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 3var_rows, mat_sum_2, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 6var_rows, mat_sum_3, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 12var_rows, mat_sum_4, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 1var_cols, mat_sum_0, 1, 0)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 2var_cols, mat_sum_1, 1, 0)->Apply(Sizes<double>::set_mat<2>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 3var_cols, mat_sum_2, 1, 0)->Apply(Sizes<double>::set_mat<3>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 6var_cols, mat_sum_3, 1, 0)->Apply(Sizes<double>::set_mat<6>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(stride_sum, 12var_cols, mat_sum_4, 1, 0)->Apply(Sizes<double>::set_mat<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 1var/rows, mat_sum_0, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 2var/rows, mat_sum_1, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 3var/rows, mat_sum_2, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 6var/rows, mat_sum_3, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 12var/rows, mat_sum_4, 0, 1)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 6vec/rows, mat_sum_6, 0, 1)->Apply(Sizes<double>::set_mat<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 1var/cols, mat_sum_0, 1, 0)->Apply(Sizes<double>::set_mat<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 2var/cols, mat_sum_1, 1, 0)->Apply(Sizes<double>::set_mat<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 3var/cols, mat_sum_2, 1, 0)->Apply(Sizes<double>::set_mat<3>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 6var/cols, mat_sum_3, 1, 0)->Apply(Sizes<double>::set_mat<6>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 12var/cols, mat_sum_4, 1, 0)->Apply(Sizes<double>::set_mat<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum, 6vec/cols, mat_sum_6, 1, 0)->Apply(Sizes<double>::set_mat<6>)->ComputeStatistics("max", max_stats);
+
+extern "C"
+{
+    double mat_sum_5(double *a, int n, int m, int rep);
+}
+
+template <typename F>
+void stride_sum_asm(benchmark::State &state, F f, int rows, int cols)
+{
+    double *A = Data<double>::get();
+    while (state.KeepRunningBatch(state.max_iterations))
+        f(A, state.range(rows), state.range(cols), state.max_iterations);
+    set_proc_speed(state, state.range(0) * state.range(1) * sizeof(double));
+    state.counters["x_label:dimension size (Bytes)"] = state.range(1) * sizeof(double);
+}
+BENCHMARK_CAPTURE(stride_sum_asm, rows, mat_sum_5, 0, 1)->Apply(Sizes<double>::set_mat<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(stride_sum_asm, cols, mat_sum_5, 1, 0)->Apply(Sizes<double>::set_mat<6>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();

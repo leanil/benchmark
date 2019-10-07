@@ -110,8 +110,6 @@ extern "C"
     // double bench9(double *A, double *B, int S, int rep);
 }
 
-#include <iostream>
-
 template <typename F>
 void dot_prod_asm(benchmark::State &state, F f)
 {
