@@ -18,6 +18,7 @@ def pin_to_core():
     if platform.system() == "Windows":
         return ["start", "/affinity", "0x4"]
     elif platform.system() == "Linux":
+        # lscpu -p=CACHE | awk -F: '/^[^#]/ { print $1 }'
         return ["taskset", "0x4"]
     return None
 
@@ -102,7 +103,7 @@ def plot_data():
     result = json.load(open(args.plot))
     x_label = [x for x in result["benchmarks"]
                [0] if x.startswith("x_label")][0]
-    cache_sizes = [cache["size"] for cache in result["context"]["caches"]
+    cache_sizes = [cache["size"] // 1000 for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
     data = {}
@@ -117,19 +118,7 @@ def plot_data():
     sizes = list(data.values())[0].x
     fig, ax = plt.subplots()
     ax.set(xlabel=x_label.split(':')[1], title=os.path.basename(args.plot))
-    if args.heatmap:
-        y_label = list(data)[0].rsplit('/')[-2]
-        data = sorted([(int(k.rsplit('/', 1)[1]), v) for k, v in data.items()])
-        img = [row[1].y for row in data]
-        hmap = ax.imshow(img, aspect='auto',
-                         extent=(sizes[0], sizes[-1], data[-1][0], data[0][0]))
-        for i, c in enumerate(cache_sizes, 1):
-            ax.plot(sizes, [c / x for x in sizes], label=f"L{i} cache size")
-        ax.set(ylabel=y_label,
-               ylim=(data[-1][0], data[0][0]))
-        fig.colorbar(hmap, ax=ax, orientation='horizontal',
-                     label="data processing speed (GiB/s)")
-    else:
+    if args.heatmap == False:
         for name, values in data.items():
             ax.plot(values[0], values[1], "o-", label=name,
                     linewidth=0.5, markersize=2)
@@ -141,9 +130,23 @@ def plot_data():
         for c in cache_sizes:
             if sizes[0] <= c <= sizes[-1]:
                 ax.axvline(c, color='black', dashes=[2, 10])
+    else:
+        y_label = list(data)[0].rsplit('/')[-2]
+        data = sorted([(int(k.rsplit('/', 1)[1]), v) for k, v in data.items()])
+        img = [row[1].y for row in data]
+        if args.heatmap and max(map(max, img)) > args.heatmap:
+            print("Max value exceeds color range!")
+        hmap = ax.imshow(img, aspect='auto', vmin=0, vmax=args.heatmap,
+                         extent=(sizes[0], sizes[-1], data[-1][0], data[0][0]))
+        for i, c in enumerate(cache_sizes, 1):
+            ax.plot(sizes, [c / x for x in sizes], label=f"L{i} cache size")
+        ax.set(ylabel=y_label,
+               ylim=(data[-1][0], data[0][0]))
+        fig.colorbar(hmap, ax=ax, orientation='horizontal',
+                     label="data processing speed (GiB/s)")
     ax.legend()
     fig.set_size_inches(18.53, 9.55)
-    if args.savefig == None:
+    if args.savefig is None:
         plt.show()
     elif args.savefig == "":
         fig.savefig(os.path.splitext(args.plot)[0]+".png")
@@ -170,7 +173,7 @@ parser.add_argument("--step_mul", type=int, default=1,
                     help="multiplicative part of size step (overrides SIZES)")
 parser.add_argument("-c", "--collect", action='store_true',
                     help="just collect data (don't plot it)")
-parser.add_argument("--heatmap", action='store_true',
+parser.add_argument("--heatmap", type=int, nargs='?', default=False, const=None,
                     help="plot performance as a heatmap of 2 parameters")
 parser.add_argument("-p", "--plot", help="just plot the given data file")
 parser.add_argument("-f", "--filter", help="benchmark tasks to run (regex)")
