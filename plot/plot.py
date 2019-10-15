@@ -181,7 +181,7 @@ parser.add_argument("-c", "--collect", action='store_true',
                     help="just collect data (don't plot it)")
 parser.add_argument("-p", "--plot", metavar="FILE",
                     help="just plot the given data file")
-parser.add_argument("--heatmap_max", type=int, default=140,
+parser.add_argument("--heatmap_max", type=float, default=140,
                     help="the end of the heatmap color scale")
 parser.add_argument("-f", "--filter", metavar="REGEX", default="",
                     help="benchmark tasks to run")

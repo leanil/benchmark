@@ -16,6 +16,15 @@
         },
         "read_factor": 16
     },
+    "mat_mul": {
+        "params": 2,
+        "axes": {
+            "x": "inner size (doubles)",
+            "y": "result size (doubles)",
+            "z": "data processing speed (GiB/s)"
+        },
+        "read_factor": 16
+    },
     "mat_sum" : {
         "params": 2,
         "axes": {

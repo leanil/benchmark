@@ -1,7 +1,6 @@
 #include "data.h"
 #include "sizes.h"
 #include "util.h"
-#include <array>
 #include <benchmark/benchmark.h>
 #include <x86intrin.h>
 

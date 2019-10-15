@@ -1,0 +1,5 @@
+add_executable (mat_mul mat_mul.cpp)
+target_compile_features(mat_mul PRIVATE cxx_std_17)
+target_include_directories(mat_mul PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(mat_mul PRIVATE util benchmark)
+add_dependencies(benchmarks mat_mul)
