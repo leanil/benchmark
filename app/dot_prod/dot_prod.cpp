@@ -86,6 +86,14 @@ double bench5(double *A, double *B, int S)
     return sum0 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8 + sum9 + sum10 + sum11;
 }
 
+template <int BATCH>
+void dot_prod_args(benchmark::internal::Benchmark *bench)
+{
+    int mx = Sizes::set(bench, BATCH);
+    Data<double>::max_size(0, mx);
+    Data<double>::max_size(1, mx);
+}
+
 template <typename F>
 void dot_prod(benchmark::State &state, F f)
 {
@@ -93,21 +101,18 @@ void dot_prod(benchmark::State &state, F f)
     for (auto _ : state)
         benchmark::DoNotOptimize(f(A, B, state.range(0)));
     set_proc_speed(state, 2 * state.range(0) * sizeof(double));
-    state.counters["x_label:vector size (Bytes)"] = state.range(0) * sizeof(double);
 }
-BENCHMARK_CAPTURE(dot_prod, 1var, bench0)->Apply(Sizes<double>::set<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(dot_prod, 2var, bench1)->Apply(Sizes<double>::set<2>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(dot_prod, 3var, bench2)->Apply(Sizes<double>::set<3>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(dot_prod, 4var, bench3)->Apply(Sizes<double>::set<4>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(dot_prod, 6var, bench4)->Apply(Sizes<double>::set<6>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(dot_prod, 12var, bench5)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+
+BENCHMARK_CAPTURE(dot_prod, 1var, bench0)->Apply(dot_prod_args<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(dot_prod, 2var, bench1)->Apply(dot_prod_args<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(dot_prod, 3var, bench2)->Apply(dot_prod_args<3>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(dot_prod, 4var, bench3)->Apply(dot_prod_args<4>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(dot_prod, 6var, bench4)->Apply(dot_prod_args<6>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(dot_prod, 12var, bench5)->Apply(dot_prod_args<12>)->ComputeStatistics("max", max_stats);
 
 extern "C"
 {
     double bench6(double *A, double *B, int S, int rep);
-    // double bench7(double *A, double *B, int S, int rep);
-    // double bench8(double *A, double *B, int S, int rep);
-    // double bench9(double *A, double *B, int S, int rep);
 }
 
 template <typename F>
@@ -117,11 +122,8 @@ void dot_prod_asm(benchmark::State &state, F f)
     while (state.KeepRunningBatch(state.max_iterations))
         f(A, B, state.range(0), state.max_iterations);
     set_proc_speed(state, 2 * state.range(0) * sizeof(double));
-    state.counters["x_label:vector size (Bytes)"] = state.range(0) * sizeof(double);
 }
-BENCHMARK_CAPTURE(dot_prod_asm, combine, bench6)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-// BENCHMARK_CAPTURE(dot_prod_asm, mov_combine, bench7)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-// BENCHMARK_CAPTURE(dot_prod_asm, nomov_nocombine, bench8)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-// BENCHMARK_CAPTURE(dot_prod_asm, mov_nocombine, bench9)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+
+BENCHMARK_CAPTURE(dot_prod_asm, combine, bench6)->Apply(dot_prod_args<12>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();

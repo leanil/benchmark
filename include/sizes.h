@@ -9,53 +9,46 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-template <typename T>
 class Sizes
 {
 public:
-    static std::vector<int> get(int mul_of = 1) // sizes must be a multiple of this
+    static std::vector<int> get(int id, int batch = 1) // sizes must be multiples of this
     {
-        static std::vector<int> sizes;
-        if (sizes.empty())
+        static std::vector<std::vector<int>> sizes;
+        if ((int)sizes.size() <= id)
         {
-            std::cerr << "data sizes (Bytes):" << std::endl;
+            sizes.resize(id + 1);
+            std::cerr << "sizes:" << std::endl;
             std::string line;
             std::getline(std::cin, line);
             std::stringstream ss(line);
             int s;
             while (ss >> s)
-                sizes.push_back(s / sizeof(T));
-            std::sort(sizes.begin(), sizes.end());
+                sizes[id].push_back(s);
+            std::sort(sizes[id].begin(), sizes[id].end());
         }
-        std::vector<int> adjusted_sizes(sizes.size());
-        std::transform(sizes.begin(), sizes.end(), adjusted_sizes.begin(),
-                       [&](int x) { return (x + mul_of - 1) / mul_of * mul_of; });
+        if (batch == 1)
+            return sizes[id];
+        std::vector<int> adjusted_sizes(sizes[id].size());
+        std::transform(sizes[id].begin(), sizes[id].end(), adjusted_sizes.begin(),
+                       [&](int x) { return (x + batch - 1) / batch * batch; });
         adjusted_sizes.erase(std::unique(adjusted_sizes.begin(), adjusted_sizes.end()), adjusted_sizes.end());
         return adjusted_sizes;
     }
-    static int max_size(int new_size = 0)
+    static int set(benchmark::internal::Benchmark *bench, int batch)
     {
-        static int ms = 0;
-        return ms = std::max(ms, new_size);
-    }
-    template <int MUL_OF>
-    static void set(benchmark::internal::Benchmark *bench)
-    {
-        auto sizes = get(MUL_OF);
+        auto sizes = get(0, batch);
         for (int x : sizes)
             bench->Arg(x);
-        max_size(sizes.back());
+        return sizes.back();
     }
-    template <int MUL_OF>
-    static void set_mat(benchmark::internal::Benchmark *bench)
+    static int set_mat(benchmark::internal::Benchmark *bench, int batch_0, int batch_1)
     {
-        auto sizes = get(MUL_OF);
-        //static const std::array fixed_sizes{120, 360, 600};
-        for (int x = 6; x < 800; x += 6)
-            for (int y : sizes)
-                bench->Args({x, y});
-        //max_size(fixed_sizes.back() * sizes.back());
-        max_size(800 * sizes.back());
+        auto sizes_0 = get(0, batch_0), sizes_1 = Sizes::get(1, batch_1);
+        for (int a : sizes_0)
+            for (int b : sizes_1)
+                bench->Args({a, b});
+        return sizes_0.back() * sizes_1.back();
     }
 };
 

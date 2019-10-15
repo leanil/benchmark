@@ -85,6 +85,12 @@ double bench5(double *A, int S)
     return sum0 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8 + sum9 + sum10 + sum11;
 }
 
+template <int BATCH>
+void seq_sum_args(benchmark::internal::Benchmark *bench)
+{
+    Data<double>::max_size(0, Sizes::set(bench, BATCH));
+}
+
 template <typename F>
 void seq_sum(benchmark::State &state, F f)
 {
@@ -92,14 +98,14 @@ void seq_sum(benchmark::State &state, F f)
     for (auto _ : state)
         benchmark::DoNotOptimize(f(data, state.range(0)));
     set_proc_speed(state, state.range(0) * sizeof(double));
-    state.counters["x_label:data size (Bytes)"] = state.range(0) * sizeof(double);
 }
-BENCHMARK_CAPTURE(seq_sum, 1var, bench0)->Apply(Sizes<double>::set<1>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum, 2var, bench1)->Apply(Sizes<double>::set<2>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum, 3var, bench2)->Apply(Sizes<double>::set<3>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum, 4var, bench3)->Apply(Sizes<double>::set<4>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum, 6var, bench4)->Apply(Sizes<double>::set<6>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum, 12var, bench5)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+
+BENCHMARK_CAPTURE(seq_sum, 1var, bench0)->Apply(seq_sum_args<1>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 2var, bench1)->Apply(seq_sum_args<2>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 3var, bench2)->Apply(seq_sum_args<3>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 4var, bench3)->Apply(seq_sum_args<4>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 6var, bench4)->Apply(seq_sum_args<6>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, 12var, bench5)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 
 extern "C"
 {
@@ -116,11 +122,10 @@ void seq_sum_asm(benchmark::State &state, F f)
     while (state.KeepRunningBatch(state.max_iterations))
         f(data, state.range(0), state.max_iterations);
     set_proc_speed(state, state.range(0) * sizeof(double));
-    state.counters["x_label:data size (Bytes)"] = state.range(0) * sizeof(double);
 }
-BENCHMARK_CAPTURE(seq_sum_asm, nomov_combine, bench6)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum_asm, mov_combine, bench7)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum_asm, nomov_nocombine, bench8)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
-BENCHMARK_CAPTURE(seq_sum_asm, mov_nocombine, bench9)->Apply(Sizes<double>::set<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, nomov_combine, bench6)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, mov_combine, bench7)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, nomov_nocombine, bench8)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum_asm, mov_nocombine, bench9)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 
 BENCHMARK_MAIN();

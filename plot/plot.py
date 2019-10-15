@@ -6,6 +6,7 @@ import json
 import math
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib.colors import LinearSegmentedColormap
 import os
 import platform
 import re
@@ -38,29 +39,38 @@ def update_results(old_data, new_data):
                 assert old[key] == new[key]
 
 
-def collect_data():
-    if args.step_add != 0 or args.step_mul != 1:
-        sizes = []
-        s = args.min_size
-        while s <= args.max_size:
-            sizes.append(s)
-            s = args.step_mul * s + args.step_add
+def get_sizes(sizes):
+    if len(sizes) == 1:
+        with open(sizes[0]) as size_file:
+            return [int(s) for s in size_file.readlines()]
     else:
-        with open(args.sizes) as size_file:
-            sizes = [int(s) for s in size_file.readlines()
-                     if args.min_size <= int(s) <= args.max_size]
+        sizes = [int(i) for i in sizes]
+        mul = (sizes[2] - sizes[1]) // (sizes[1]-sizes[0])
+        add = sizes[1] - sizes[0]*mul
+        result, i = [], sizes[0]
+        while i <= sizes[3]:
+            result.append(i)
+            i = i * mul + add
+        return result
+
+
+def collect_data():
+    sizes = ' '.join(map(str, get_sizes(args.sizes)))
+    if conf["params"] == 2:
+        s2 = args.sizes2 if args.sizes2 else args.sizes
+        sizes += '\n' + ' '.join(map(str, get_sizes(s2)))
     bench_args = pin_to_core() + [
-        args.benchmark,
-        "--benchmark_format=json"] + \
-        ([f"--benchmark_filter={args.filter}"]
-         if args.filter else []) + \
-        args.extra
+        exe_path,
+        "--benchmark_format=json",
+        f"--benchmark_min_time={args.min_time}",
+        f"--benchmark_filter={args.filter}"
+    ] + args.extra
     if not os.path.exists(f"{base}/data"):
         os.mkdir(f"{base}/data")
     t0 = datetime.fromtimestamp(time.time())
     for i in range(args.repetitions):
         print(f"run #{i+1} / {args.repetitions}", end='\r')
-        proc = subprocess.run(bench_args, input=' '.join(map(str, sizes)),
+        proc = subprocess.run(bench_args, input=sizes,
                               text=True, capture_output=True)
         if i == 0:
             t1 = datetime.fromtimestamp(time.time())
@@ -101,24 +111,39 @@ def use_log_scale(sizes):
 
 def plot_data():
     result = json.load(open(args.plot))
-    x_label = [x for x in result["benchmarks"]
-               [0] if x.startswith("x_label")][0]
     cache_sizes = [cache["size"] // 1000 for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
     data = {}
     for bench in result["benchmarks"]:
-        name = bench["name"].rsplit('/', 1)[0]
-        if args.filter and not re.search(args.filter, name):
+        if args.filter and not re.search(args.filter, bench["name"]):
             continue
+        name, pos = bench["name"].rsplit('/', 1)
         if not name in data:
             data[name] = Series([], [])
-        data[name].x.append(int(bench[x_label]))
+        data[name].x.append(int(pos))
         data[name].y.append(float(bench["processing_speed"])/(1 << 30))
     sizes = list(data.values())[0].x
     fig, ax = plt.subplots()
-    ax.set(xlabel=x_label.split(':')[1], title=os.path.basename(args.plot))
-    if args.heatmap == False:
+    ax.set(xlabel=conf["axes"]["x"], ylabel=conf["axes"]["y"],
+           title=os.path.basename(args.plot))
+    if conf["params"] == 2:
+        data = sorted([(int(k.rsplit('/', 1)[1]), v) for k, v in data.items()])
+        img = [row[1].y for row in data]
+        if max(map(max, img)) > args.heatmap_max:
+            print("Max value exceeds color range!")
+        colors = ["#000000", "#00FF00", "#008844", "#00FFFF", "#004488", "#0000FF", "#440088",
+                  "#FF00FF", "#880044", "#FF0000", "#884400", "#FFFF00", "#444444", "#FFFFFF", "#000000"]
+        cmap = LinearSegmentedColormap.from_list('my_colormap', colors, 2048)
+        hmap = ax.imshow(img, aspect='auto', vmin=0, vmax=args.heatmap_max, cmap=cmap,
+                         extent=(sizes[0], sizes[-1], data[-1][0], data[0][0]))
+        for i, c in enumerate(cache_sizes, 1):
+            ax.plot(sizes, [c / x / conf["read_factor"]
+                            for x in sizes], label=f"L{i} cache size")
+        ax.set(ylim=(data[-1][0], data[0][0]))
+        fig.colorbar(hmap, ax=ax, orientation='horizontal',
+                     label=conf["axes"]["z"])
+    else:
         for name, values in data.items():
             ax.plot(values[0], values[1], "o-", label=name,
                     linewidth=0.5, markersize=2)
@@ -126,24 +151,10 @@ def plot_data():
             ax.set_xscale("log", basex=2)
         else:
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.set(ylabel="data processing speed (GiB/s)")
         for c in cache_sizes:
+            c /= conf["read_factor"]
             if sizes[0] <= c <= sizes[-1]:
                 ax.axvline(c, color='black', dashes=[2, 10])
-    else:
-        y_label = list(data)[0].rsplit('/')[-2]
-        data = sorted([(int(k.rsplit('/', 1)[1]), v) for k, v in data.items()])
-        img = [row[1].y for row in data]
-        if args.heatmap and max(map(max, img)) > args.heatmap:
-            print("Max value exceeds color range!")
-        hmap = ax.imshow(img, aspect='auto', vmin=0, vmax=args.heatmap,
-                         extent=(sizes[0], sizes[-1], data[-1][0], data[0][0]))
-        for i, c in enumerate(cache_sizes, 1):
-            ax.plot(sizes, [c / x for x in sizes], label=f"L{i} cache size")
-        ax.set(ylabel=y_label,
-               ylim=(data[-1][0], data[0][0]))
-        fig.colorbar(hmap, ax=ax, orientation='horizontal',
-                     label="data processing speed (GiB/s)")
     ax.legend()
     fig.set_size_inches(18.53, 9.55)
     if args.savefig is None:
@@ -160,26 +171,25 @@ base = os.path.dirname(os.path.abspath(__file__))
 parser = argparse.ArgumentParser(
     description="Run the specified benchmark and plot the result.")
 parser.add_argument("-b", "--benchmark",
-                    help="path to the benchmark executable")
-parser.add_argument("--sizes", default=f"{base}/sizes.txt",
-                    help="file containing benchmark sizes (1 integer per row)")
-parser.add_argument("-s", "--min_size", type=int, default=1,
-                    help="minimum benchmark size (bytes)")
-parser.add_argument("-S", "--max_size", type=int, default=1 << 27,
-                    help="maximum benchmark size (bytes)")
-parser.add_argument("--step_add", type=int, default=0,
-                    help="additive part of size step (overrides SIZES)")
-parser.add_argument("--step_mul", type=int, default=1,
-                    help="multiplicative part of size step (overrides SIZES)")
+                    help="name of benchmark to run")
+parser.add_argument("-s", "--sizes", nargs='+', default=[f"{base}/sizes.txt"],
+                    help="""4 integers <start step1 step2 stop> specifying a sequence,
+                            or path to a file containing benchmark sizes (1 integer per row)""")
+parser.add_argument("-s2", "--sizes2", nargs='+',
+                    help="sizes of second dimension (see --sizes)")
 parser.add_argument("-c", "--collect", action='store_true',
                     help="just collect data (don't plot it)")
-parser.add_argument("--heatmap", type=int, nargs='?', default=False, const=None,
-                    help="plot performance as a heatmap of 2 parameters")
-parser.add_argument("-p", "--plot", help="just plot the given data file")
-parser.add_argument("-f", "--filter", help="benchmark tasks to run (regex)")
+parser.add_argument("-p", "--plot", metavar="FILE",
+                    help="just plot the given data file")
+parser.add_argument("--heatmap_max", type=int, default=140,
+                    help="the end of the heatmap color scale")
+parser.add_argument("-f", "--filter", metavar="REGEX", default="",
+                    help="benchmark tasks to run")
+parser.add_argument("-t", "--min_time", type=float, default=0.1,
+                    help="run each benchmark for MIN_TIME seconds")
 parser.add_argument("-r", "--repetitions", type=int, default=3,
                     help="repeat measurements multiple times to reduce noise (default: 3)")
-parser.add_argument("--savefig", nargs='?', const="",
+parser.add_argument("--savefig", nargs='?', const="", metavar="FILE",
                     help="save the plot with the given name, instead of showing")
 parser.add_argument("extra", nargs=argparse.REMAINDER,
                     help="extra args passed to google benchmark")
@@ -190,6 +200,12 @@ if len(sys.argv) == 1:
     sys.exit()
 if args.extra and args.extra[0] == "--":
     args.extra.pop(0)
+conf = json.load(open(f"{base}/config.json"))
+if not args.benchmark in conf:
+    print(f"unknown benchmark: {args.benchmark}")
+    sys.exit()
+exe_path = f"{conf['build_dir']}/app/{args.benchmark}/{args.benchmark}"
+conf = conf[args.benchmark]
 if not args.plot:
     args.plot = collect_data()
 if not args.collect:

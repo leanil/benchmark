@@ -1,0 +1,36 @@
+{
+    "build_dir" : "build",
+    "array_sum": {
+        "params": 1,
+        "axes": {
+            "x": "array size (doubles)",
+            "y": "data processing speed (GiB/s)"
+        },
+        "read_factor": 8
+    },
+    "dot_prod": {
+        "params": 1,
+        "axes": {
+            "x": "array size (doubles)",
+            "y": "data processing speed (GiB/s)"
+        },
+        "read_factor": 16
+    },
+    "mat_sum" : {
+        "params": 2,
+        "axes": {
+            "x": "cols",
+            "y": "rows",
+            "z": "data processing speed (GiB/s)"
+        },
+        "read_factor": 8
+    },
+    "read": {
+        "params": 1,
+        "axes": {
+            "x": "data size (Bytes)",
+            "y": "data processing speed (GiB/s)"
+        },
+        "read_factor": 1
+    }
+}
