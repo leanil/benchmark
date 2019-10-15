@@ -1,5 +1,6 @@
 add_executable (mat_sum mat_sum.cpp bench.s)
-set_target_properties(mat_sum PROPERTIES COMPILE_FLAGS "-save-temps") 
+#set_target_properties(mat_sum PROPERTIES COMPILE_FLAGS "-save-temps") 
 target_compile_features(mat_sum PRIVATE cxx_std_17)
 target_include_directories(mat_sum PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(mat_sum PRIVATE util benchmark)
+add_dependencies(benchmarks mat_sum)
