@@ -3,6 +3,7 @@
 #include "util.h"
 #include <benchmark/benchmark.h>
 #include <x86intrin.h>
+#include <numeric>
 
 using namespace std;
 
@@ -121,6 +122,11 @@ double array_sum_6vec(double *A, int S)
     return _mm_cvtsd_f64(sum0);
 }
 
+double array_sum_accumulate(double *A, int S)
+{
+    return accumulate(A, A + S, 0.0);
+}
+
 extern "C"
 {
     double array_sum_asm_nomov(double *A, int S);
@@ -150,6 +156,7 @@ BENCHMARK_CAPTURE(seq_sum, 6var, array_sum_6var)->Apply(seq_sum_args<6>)->Comput
 BENCHMARK_CAPTURE(seq_sum, 12var, array_sum_12var)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum, 1vec, array_sum_1vec)->Apply(seq_sum_args<2>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum, 6vec, array_sum_6vec)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
+BENCHMARK_CAPTURE(seq_sum, accumulate, array_sum_accumulate)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum, asm_nomov, array_sum_asm_nomov)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 BENCHMARK_CAPTURE(seq_sum, asm_mov, array_sum_asm_mov)->Apply(seq_sum_args<12>)->ComputeStatistics("max", max_stats);
 

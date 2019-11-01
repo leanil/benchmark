@@ -111,7 +111,7 @@ def use_log_scale(sizes):
 
 def plot_data():
     result = json.load(open(args.plot))
-    cache_sizes = [cache["size"] // 1000 for cache in result["context"]["caches"]
+    cache_sizes = [cache["size"] // 1000 * 1024 for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
     data = {}
