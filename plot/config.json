@@ -41,5 +41,13 @@
             "y": "data processing speed (GiB/s)"
         },
         "read_factor": 1
+    },
+    "stride_sum": {
+        "params": 1,
+        "axes": {
+            "x": "number of reads",
+            "y": "data processing speed (GiB/s)"
+        },
+        "read_factor": 64
     }
 }

@@ -1,0 +1,6 @@
+add_executable(stride_sum stride_sum.cpp)
+set_target_properties(stride_sum PROPERTIES COMPILE_FLAGS "-save-temps") 
+target_compile_features(stride_sum PRIVATE cxx_std_17)
+target_include_directories(stride_sum PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(stride_sum PRIVATE util benchmark)
+add_dependencies(benchmarks stride_sum)
