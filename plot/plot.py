@@ -9,6 +9,7 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap
 import os
 import platform
+import png
 import re
 import subprocess
 import sys
@@ -38,6 +39,8 @@ def update_results(old_data, new_data):
             else:
                 assert old[key] == new[key]
 
+def get_string_id(context):
+    return f'{context["date"].replace(" ", "_")}_{context["benchmark_name"]}_{context["host_name"]}'
 
 def get_sizes(sizes):
     if len(sizes) == 1:
@@ -45,18 +48,18 @@ def get_sizes(sizes):
             return [int(s) for s in size_file.readlines()]
     else:
         sizes = [int(i) for i in sizes]
-        mul = (sizes[2] - sizes[1]) // (sizes[1]-sizes[0])
+        mul = (sizes[2] - sizes[1]) / (sizes[1]-sizes[0])
         add = sizes[1] - sizes[0]*mul
         result, i = [], sizes[0]
         while i <= sizes[3]:
-            result.append(i)
+            result.append(int(i))
             i = i * mul + add
         return result
 
 
 def collect_data():
     sizes = ' '.join(map(str, get_sizes(args.sizes)))
-    if conf["params"] == 2:
+    if conf["params"] == 2 or args.sizes2:
         s2 = args.sizes2 if args.sizes2 else args.sizes
         sizes += '\n' + ' '.join(map(str, get_sizes(s2)))
     bench_args = pin_to_core() + [
@@ -89,9 +92,8 @@ def collect_data():
             data = result
         else:
             update_results(data, result)
-    out_file = f"{base}/data/{t0.strftime('%Y-%m-%d_%H-%M-%S')}_" \
-        f"{os.path.basename(args.benchmark)}_" \
-        f"{result['context']['host_name']}.json"
+    data["context"]["benchmark_name"] = args.benchmark
+    out_file = f'{base}/data/{get_string_id(data["context"])}.json'
     with open(out_file, 'w') as f:
         json.dump(data, f)
     return out_file
@@ -108,9 +110,20 @@ def use_log_scale(sizes):
     log_sizes = [math.log(s, 2) for s in sizes]
     return gap_ratio(log_sizes) < gap_ratio(sizes)
 
+def get_json(filename):
+    if(os.path.splitext(filename)[1] == ".png"):
+        chunks = list(png.Reader(filename).chunks())
+        return json.loads(chunks[-2][1])
+    return json.load(open(filename))
+
+def append_json_to_png(filename, data):
+    chunks = list(png.Reader(filename).chunks())
+    chunks.insert(len(chunks)-1,(b"tEXt",bytes(json.dumps(data),"utf-8")))
+    with open(filename, 'wb') as file:
+        png.write_chunks(file, chunks)
 
 def plot_data():
-    result = json.load(open(args.plot))
+    result = get_json(args.plot)
     cache_sizes = [cache["size"] // 1000 * 1024 for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
@@ -126,7 +139,7 @@ def plot_data():
     sizes = list(data.values())[0].x
     fig, ax = plt.subplots()
     ax.set(xlabel=conf["axes"]["x"], ylabel=conf["axes"]["y"],
-           title=os.path.basename(args.plot))
+           title=get_string_id(result["context"]))
     if conf["params"] == 2:
         data = sorted([(int(k.rsplit('/', 1)[1]), v) for k, v in data.items()])
         img = [row[1].y for row in data]
@@ -159,12 +172,15 @@ def plot_data():
     fig.set_size_inches(18.53, 9.55)
     if args.savefig is None:
         plt.show()
-    elif args.savefig == "":
-        fig.savefig(os.path.splitext(args.plot)[0]+".png")
-    elif os.path.dirname(args.savefig):
-        fig.savefig(args.savefig)
     else:
-        fig.savefig(f"{base}/data/{args.savefig}")
+        if args.savefig == "":
+            filename = os.path.splitext(args.plot)[0]+".png"
+        elif os.path.dirname(args.savefig):
+            filename = args.savefig
+        else:
+            filename = f"{base}/data/{args.savefig}"
+        fig.savefig(filename)
+        append_json_to_png(filename, result)
 
 
 base = os.path.dirname(os.path.abspath(__file__))

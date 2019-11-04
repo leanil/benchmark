@@ -15,11 +15,11 @@ public:
         while (data.size() <= id)
         {
             int size = max_size(id);
-            data.push_back((T *)aligned_alloc(32, (size * sizeof(T) + 31) / 32 * 32));
+            data.push_back((T *)aligned_alloc(32, (size * sizeof(T) + 31) / 32 * 32 + id * 64));
             for (int i = 0; i < size; ++i)
                 data.back()[i] = rand() % 128;
         }
-        return data[id];
+        return data[id] + id * 64 / sizeof(T);
     }
 
     static int max_size(int id, int new_size = 0)
