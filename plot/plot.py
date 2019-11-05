@@ -14,7 +14,7 @@ import re
 import subprocess
 import sys
 import time
-
+import zlib
 
 def pin_to_core():
     if platform.system() == "Windows":
@@ -39,8 +39,11 @@ def update_results(old_data, new_data):
             else:
                 assert old[key] == new[key]
 
+
 def get_string_id(context):
-    return f'{context["date"].replace(" ", "_")}_{context["benchmark_name"]}_{context["host_name"]}'
+    return f'{context["date"].replace(" ", "_").replace(":","-")}_'\
+        f'{context["benchmark_name"]}_{context["host_name"]}'
+
 
 def get_sizes(sizes):
     if len(sizes) == 1:
@@ -56,8 +59,18 @@ def get_sizes(sizes):
             i = i * mul + add
         return result
 
+def set_config(benchmark):
+    global conf, exe_path
+    if conf == None:
+        conf = json.load(open(f"{base}/config.json"))
+        if not benchmark in conf:
+            print(f"unknown benchmark: {benchmark}")
+            sys.exit()
+        exe_path = f"{conf['build_dir']}/app/{args.benchmark}/{args.benchmark}"
+        conf = conf[benchmark]
 
 def collect_data():
+    set_config(args.benchmark)
     sizes = ' '.join(map(str, get_sizes(args.sizes)))
     if conf["params"] == 2 or args.sizes2:
         s2 = args.sizes2 if args.sizes2 else args.sizes
@@ -110,20 +123,25 @@ def use_log_scale(sizes):
     log_sizes = [math.log(s, 2) for s in sizes]
     return gap_ratio(log_sizes) < gap_ratio(sizes)
 
+
 def get_json(filename):
     if(os.path.splitext(filename)[1] == ".png"):
         chunks = list(png.Reader(filename).chunks())
         return json.loads(chunks[-2][1])
     return json.load(open(filename))
 
+
 def append_json_to_png(filename, data):
     chunks = list(png.Reader(filename).chunks())
-    chunks.insert(len(chunks)-1,(b"tEXt",bytes(json.dumps(data),"utf-8")))
+    bin_data = zlib.compress(bytes(json.dumps(data), "utf-8"))
+    chunks.insert(len(chunks)-1, (b"iTXt", bin_data))
     with open(filename, 'wb') as file:
         png.write_chunks(file, chunks)
 
+
 def plot_data():
     result = get_json(args.plot)
+    set_config(result["context"]["benchmark_name"])
     cache_sizes = [cache["size"] // 1000 * 1024 for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
@@ -216,12 +234,7 @@ if len(sys.argv) == 1:
     sys.exit()
 if args.extra and args.extra[0] == "--":
     args.extra.pop(0)
-conf = json.load(open(f"{base}/config.json"))
-if not args.benchmark in conf:
-    print(f"unknown benchmark: {args.benchmark}")
-    sys.exit()
-exe_path = f"{conf['build_dir']}/app/{args.benchmark}/{args.benchmark}"
-conf = conf[args.benchmark]
+conf = None
 if not args.plot:
     args.plot = collect_data()
 if not args.collect:
