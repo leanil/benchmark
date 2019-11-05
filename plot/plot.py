@@ -127,7 +127,7 @@ def use_log_scale(sizes):
 def get_json(filename):
     if(os.path.splitext(filename)[1] == ".png"):
         chunks = list(png.Reader(filename).chunks())
-        return json.loads(chunks[-2][1])
+        return json.loads(zlib.decompress(chunks[-2][1]))
     return json.load(open(filename))
 
 
@@ -168,9 +168,10 @@ def plot_data():
         cmap = LinearSegmentedColormap.from_list('my_colormap', colors, 2048)
         hmap = ax.imshow(img, aspect='auto', vmin=0, vmax=args.heatmap_max, cmap=cmap,
                          extent=(sizes[0], sizes[-1], data[-1][0], data[0][0]))
-        for i, c in enumerate(cache_sizes, 1):
-            ax.plot(sizes, [c / x / conf["read_factor"]
-                            for x in sizes], label=f"L{i} cache size")
+        line_colors = ["#00FFFF", "#00FF00", "#FFFF00"]
+        for i, c in enumerate(cache_sizes):
+            ax.plot(sizes, [c / x / conf["read_factor"] for x in sizes],
+                color=line_colors[i], label=f"L{i+1} cache size")
         ax.set(ylim=(data[-1][0], data[0][0]))
         fig.colorbar(hmap, ax=ax, orientation='horizontal',
                      label=conf["axes"]["z"])
