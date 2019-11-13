@@ -10,4 +10,4 @@ python3 plot/plot.py -b stride_sum -f 6vec -t 0.01 -s 2 4 6 32 -s2 32 38 45 4000
 echo "running benchmark: stride_sum"
 python3 plot/plot.py -b stride_sum -f 6vec -t 0.01 -s 2 4 8 128 -s2 32 38 45 4000000 --savefig questions/stride_sum_2_$id.png
 echo "running benchmark: mat_sum"
-python3 plot/plot.py -b mat_sum -s 6 12 18 1200 -s2 2 4 6 1200 -f 6vec -t 0.01 --savefig questions/mat_sum.png
+python3 plot/plot.py -b mat_sum -s 6 12 18 1200 -s2 2 4 6 1200 -f 6vec -t 0.01 --savefig questions/mat_sum_$id.png
