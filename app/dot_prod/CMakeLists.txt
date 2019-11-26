@@ -1,5 +1,2 @@
 add_executable (dot_prod dot_prod.cpp bench.s)
-target_compile_features(dot_prod PRIVATE cxx_std_17)
-target_include_directories(dot_prod PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(dot_prod PRIVATE util benchmark)
-add_dependencies(benchmarks dot_prod)
+benchmark_setup(dot_prod)

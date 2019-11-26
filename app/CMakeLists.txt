@@ -1,5 +1,14 @@
 add_custom_target(benchmarks)
 
+function(benchmark_setup target)
+    set_target_properties(${target} PROPERTIES COMPILE_FLAGS "-save-temps") 
+    target_compile_features(${target} PRIVATE cxx_std_17)
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(${target} PRIVATE util benchmark)
+    add_dependencies(benchmarks ${target})
+endfunction()
+
+add_subdirectory(array_copy)
 add_subdirectory(array_sum)
 add_subdirectory(dot_prod)
 add_subdirectory(mat_mul)
