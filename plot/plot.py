@@ -142,7 +142,7 @@ def append_json_to_png(filename, data):
 def plot_data():
     result = get_json(args.plot)
     set_config(result["context"]["benchmark_name"])
-    cache_sizes = [cache["size"] // 1000 * 1024 for cache in result["context"]["caches"]
+    cache_sizes = [cache["size"] for cache in result["context"]["caches"]
                    if cache["type"] != "Instruction"]
     Series = collections.namedtuple("Series", ['x', 'y'])
     data = {}
