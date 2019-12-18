@@ -1,3 +1,6 @@
 [submodule "extern/benchmark"]
 	path = extern/benchmark
 	url = https://github.com/google/benchmark.git
+[submodule "extern/eigen"]
+	path = extern/eigen
+	url = https://gitlab.com/libeigen/eigen.git
